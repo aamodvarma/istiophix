@@ -1,7 +1,194 @@
 {% extends 'base/main.html'%}
 
+{% load static %}
 {% block content%}
-<h1> Hwllo </h1>
+
+
+
+        <div class='section header' id='div1' style="background:url({% static 'images/background.jpeg'%});height: 100vh;">
+            <section class="hero">
+                <div class="cta container">
+                    <div class="main-section">
+                        <h1 class='main_heading' style="font-size: 100px;">ProjecTurtle</h1>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+
+
+
+        <div class='section section1' style="background-color: white; height: 60vh;">
+
+            <div class='pg2box'>
+
+                <div class='divleft'>
+                    <div class='divleft_sub'>
+
+
+                        <h1 class="pg2head">
+                            Using ML to protect endangered species
+                        </h1>
+                        <h1 class='pg2sub'>
+                            Eliminating the need for laborious nest searches with advanced drone and ML technology
+                        </h1>
+
+                        <h1 class='pg2sub' style="color: #cccccc;">
+                            <a>
+
+                            learn more
+                            </a>
+                        </h1>
+
+
+
+
+                    </div>
+
+                </div>
+                <div class='divright'>
+                    <div class=divright_img>
+
+                        <img src="{% static 'images/wireframe.png' %}" style="max-width: 90%">
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+        <div class='section section2' style="background: white;height: 100vh;">
+
+            <div class="sec2_container" style="width: 100%;">
+
+                <div class='box1' style="background: #050a30;">
+
+
+                    <img class='logo' src="{% static 'images/logo.svg' %}" alt="">
+                    <h1 class='mainb'>
+                        OpenSource Project
+                    </h1>
+                    <h1 class='subb'>
+                        Institutes, researchers and ML enthusiasts all around the world are making this a reality
+
+
+                    </h1>
+
+
+                </div>
+                <div class='box3' style="background: #050a30;">
+
+                    <img class='logo' src="{% static '/images/logo.svg' %}" alt="">
+                    <h1 class='mainb'>
+                        Saving a Species
+
+                    </h1>
+                    <h1 class='subb'>
+                        Join us in saving an entire species from vanishing off our planet
+                    </h1>
+
+
+
+
+                </div>
+                <div class='box2' style="background: #050a30;">
+
+                    <img class='logo' src="{% static '/images/logo.svg' %}" alt="">
+
+                    <h1 class='mainb'>
+                        Streamlining conservation
+                    </h1>
+                    <h1 class='subb'>
+                        Reducing the need for human effort for nest searching
+                    </h1>
+
+
+
+                </div>
+
+            </div>
+
+
+
+
+
+
+
+        </div>
+        <div class='section section3' style="background-image: url({% static '/images/baech.jpeg' %});height: 100vh;">
+            <div class='mainbox' style="height: 50vh;">
+
+                <div class='centerbox'>
+
+                    <h1 class='sec3main1'>
+                        Implementing at Saadiyat Abu Dhabi
+
+
+
+                    </h1>
+
+                    <h1 class='sec3main2'>
+                        We are talking with Resorts at Saadiyat, to help preserve the beautiful wildlife in the region with our technology
+
+
+
+                    </h1>
+
+
+                </div>
+
+
+
+
+            </div>
+        </div>
+
+
+        <div class='section' style="background-color: #f4f6fc; height: 80vh;">
+            <div class='pg2box'>
+
+                <div class='divleft'>
+                    <div class='divleft_sub'>
+
+
+                        <h1 class="pg2head">
+                            Collaborate!
+                        </h1>
+                        <h1 class='pg2sub'>
+                            Collaborate with us to help save endangered turtle species in your area!
+                        </h1>
+
+
+                        <h1 class='pg2sub' style="color: #cccccc;">
+                            <a>
+
+                            learn more
+                            </a>
+                        </h1>
+
+                    </div>
+
+                </div>
+                <div class='divright'>
+                    <div class=divright_img>
+
+                        <img src=" {% static 'images/wireframe2.png' %}" style="max-width: 60%">
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+
+        </div>
+
 
 
 {% endblock %}
