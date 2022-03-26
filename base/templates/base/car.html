@@ -1,0 +1,120 @@
+{% extends 'base/main.html'%} {% load static %}
+
+{% block content%}
+
+  
+
+
+ <div class="obj3d" id="scene">
+        <div class="obj3d room" id="room">
+          <x-model class="obj3d model" src="{% static '/models/istiophix.obj' %}"></x-model>
+          <div class="obj3d room__floor"></div>
+        </div>
+      </div>
+
+
+      
+     <script src="{% static 'js/custom-element-polyfill.min.js' %}"></script>
+      <script src="{% static 'js/three.min.js' %}"></script>
+      <script src="{% static 'js/three-obj-loader.min.js' %}"></script>
+      <script src="{% static 'js/model-element.min.js' %}"></script>
+      <script src="{% static 'js/demo.js' %}"></script>
+   
+
+      <div class="panel panel--about">
+        Use mouse to look and
+        <kbd class="key">W</kbd>
+        <kbd class="key">A</kbd>
+        <kbd class="key">S</kbd>
+        <kbd class="key">D</kbd>
+        <kbd class="key">X</kbd>
+        <kbd class="key">C</kbd>
+      to move
+        </div>
+      
+
+ </div>
+
+
+
+
+ <style>
+     html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+html {
+  font: 100% / 1.5 Arial;
+}
+
+body {
+  perspective: 800px;
+  background: linear-gradient(#232629, #111314);
+}
+
+.key {
+  display: inline-block;
+  padding:.25em .5em;
+  box-shadow: 0 2px 1px #666;
+  border-radius: 3px;
+  margin: .1em;
+}
+
+.obj3d {
+  transform-style: preserve-3d;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.model {
+  width: 300px;
+  height: 300px;
+  margin: -150px;
+  animation: 10s spin linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotateY(1turn);
+  }
+}
+
+/* panels for the demo */
+
+.panel {
+  position: fixed;
+  padding: 1em;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.panel cite {
+  font-style: normal;
+}
+
+.panel a {
+  color: #fc0;
+}
+
+.panel--help {
+  background: rgba(255,255,255,.7);
+  top: 1em;
+  left: 1em;
+}
+
+.panel--about {
+  font-style: normal;
+  background: rgba(0,0,0,.5);
+  bottom: 1em;
+  left: 1em;
+  right: 1em;
+  color: #fff;
+}
+
+ </style>
+
+{% endblock %}

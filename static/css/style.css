@@ -26,6 +26,10 @@ li {
     display: inline-block;
     margin: -2rem 2.5rem;
 }
+a{
+    text-decoration:none
+}
+
 
 li h4 {
     color: white;
@@ -59,7 +63,7 @@ li a {
 }
 
 .menu-container.dark.minified {
-    background: linear-gradient( 45deg, #0b0b45, transparent);
+    background: linear-gradient( 45deg, #006ed9, transparent);
     backdrop-filter: blur(50px);
 }
 

@@ -1,0 +1,170 @@
+{% extends 'base/main.html'%} {% load static %}
+{% block content%}
+
+
+<div class="actual_main">
+    
+<div class="main">
+    <div class="profile-card">
+
+        <div class="img">
+            <img src="{% static 'images/image.jpeg' %}">
+        </div>
+
+        <div class="caption">
+
+        <h3>Aditya Sathyanath</h3>
+        <p>CFD Aerodynamics CAD</p>
+        </div>
+    </div>
+
+    <div class="profile-card">
+
+        <div class="img">
+            <img src="{% static 'images/image.jpeg' %}">
+        </div>
+
+        <div class="caption">
+
+        <h3>Aamod Varma</h3>
+        <p>CFD Aerodynamics CAD</p>
+        </div>
+    </div>
+
+    <div class="profile-card">
+
+        <div class="img">
+            <img src="{% static 'images/image.jpeg' %}">
+        </div>
+
+        <div class="caption">
+
+        <h3>Trun Ramteke</h3>
+        <p>CFD Aerodynamics CAD</p>
+        </div>
+    </div>
+
+    <div class="profile-card">
+
+        <div class="img">
+            <img src="{% static 'images/image.jpeg' %}">
+        </div>
+
+        <div class="caption">
+
+        <h3>Akash Dudhe</h3>
+        <p>CFD Aerodynamics CAD</p>
+        </div>
+    </div>
+
+    <div class="profile-card">
+
+        <div class="img">
+            <img src="{% static 'images/image.jpeg' %}">
+        </div>
+
+        <div class="caption">
+
+        <h3>Kunal Tiwari</h3>
+        <p>Senior App Developer</p>
+        </div>
+    </div>
+
+</div>
+
+
+
+ 
+
+</div>
+
+   <style>
+     body {
+       background-image: url('./static/images/waves.png'); 
+     }
+
+* {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+     font-family: Exo;
+   }
+   
+   a{
+           font-family: "Rogan-Regular";
+   }
+
+   .main{
+     width: 100%;
+
+     background-color: biege;
+     height: 100vh;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+   }
+
+   .profile-card{
+     position: relative;
+     font-family: sans-serif;
+     width: 220px;
+     height: 220px;
+     background: #fff;
+     padding: 30px;
+     border-radius: 50%;
+     box-shadow: 0 0 22px #3336;
+     transition: .6s;
+     margin: 0 25px;
+   }
+
+   .profile-card:hover{
+     border-radius: 10px;
+     height: 260px;
+   }
+
+   .profile-card .img{
+     position: relative;
+     width: 100%;
+     height: 100%;
+     transition: .6s;
+     z-index: 99;
+   }
+
+   .img img{
+     width: 100%;
+     border-radius: 50%;
+     box-shadow: 0 0 22px #3336;
+     transition: .6s;
+   }
+
+   .profile-card:hover .img{
+     transform: translateY(-60px);
+   }
+
+   .profile-card:hover img{
+     border-radius: 10px;
+   }
+
+   .caption{
+     text-align: center;
+     transform: translateY(-80px);
+     opacity: 0;
+     transition: .6s;
+   }
+   .profile-card:hover .caption{
+     opacity: 1;
+   }
+   .caption h3{
+     font-size: 21px;
+     font-family: sans-serif;
+   }
+   .caption p{
+     font-size: 15px;
+     color: #0c52a1;
+     font-family: sans-serif;
+     margin: 2px 0 9px 0;
+   }
+
+   </style>
+
+{% endblock %}

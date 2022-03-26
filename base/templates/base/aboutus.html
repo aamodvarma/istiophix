@@ -1,0 +1,606 @@
+{% extends 'base/main.html'%} {% load static %}
+
+{% block content%}
+
+   
+
+<div class='main'>
+
+
+
+    <div class='section header' style="background-image: url('./static/images/waves.png'); height: 100vh;">
+        <section class="hero">
+            <div class="cta container">
+                <div class="main-section">
+                    <h1 class='main_heading' style="font-size: 100px; color: white;">About Us</h1>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+
+
+
+    <div class='section section1' style="background-color: white; height: 60vh;">
+
+        <div class='pg2box'>
+
+            <div class='divleft'>
+                <div class='divleft_sub'>
+
+
+                    <h1 class="pg2head">
+                        CFD
+                    </h1>
+                    <h1 class='pg2sub'>
+                        Computation fluid dynamics (CFD) is an engineering tool used to simulate the action of thermo-fluids in a system
+                    </h1>
+
+                    <h1 class='pg2sub' style="color: #cccccc;">
+                        <a>
+
+                        learn more
+                        </a>
+                    </h1>
+
+
+
+
+                </div>
+
+            </div>
+            <div class='divright'>
+                <div class=divright_img>
+
+                    <img src="./img/wireframe.png" style="max-width: 90%">
+
+
+                </div>
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+    <div class='section section2' style="background: white;">
+
+        <div class="sec2_container" style="width: 100%;">
+
+            <div class='box1' style="background: #050a30;">
+
+                <img class='logo' src="./img/logo.svg" alt="">
+                <h1 class='mainb'>
+                    Iteration 1
+                </h1>
+                <h1 class='subb'>
+
+
+                </h1>
+
+
+            </div>
+            <div class='box3' style="background: #050a30;">
+
+                <img class='logo' src="./img/logo.svg" alt="">
+                <h1 class='mainb'>
+
+                    Iteration 2
+
+                </h1>
+                <h1 class='subb'>
+                </h1>
+
+
+
+
+            </div>
+            <div class='box2' style="background: #050a30;">
+
+                <img class='logo' src="./img/logo.svg" alt="">
+
+                <h1 class='mainb'>
+                    Iteration 3
+
+                </h1>
+                <h1 class='subb'>
+                </h1>
+
+
+
+            </div>
+
+        </div>
+
+
+
+
+
+
+
+    </div>
+
+
+
+    <div class='section' style="background-color: #ffffff; height: 80vh;">
+ <div class="obj3d" id="scene">
+        <div class="obj3d room" id="room">
+          <x-model class="obj3d model" src="{% static '/models/istiophix.obj' %}"></x-model>
+          <div class="obj3d room__floor"></div>
+        </div>
+      </div>
+
+
+      
+     <script src="{% static 'js/custom-element-polyfill.min.js' %}"></script>
+      <script src="{% static 'js/three.min.js' %}"></script>
+      <script src="{% static 'js/three-obj-loader.min.js' %}"></script>
+      <script src="{% static 'js/model-element.min.js' %}"></script>
+      <script src="{% static 'js/3d_aboutus.js' %}"></script>
+   
+
+      
+
+    </div>
+
+    <div>
+
+       <h1 class='pg2sub' style="
+        color: #cccccc;
+        text-align: -webkit-center;
+        width: 100%;
+        padding: 30px;
+        font-size: xx-large;
+                ">
+        <a href="{% url 'car' %}">
+            learn more
+        </a>
+       </h1>
+
+
+    </div>
+
+
+
+<style>
+    html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+html {
+  font: 100% / 1.5 Arial;
+}
+
+body {
+  perspective: 800px;
+  background: linear-gradient(#232629, #111314);
+}
+
+.key {
+  display: inline-block;
+  padding:.25em .5em;
+  box-shadow: 0 2px 1px #666;
+  border-radius: 3px;
+  margin: .1em;
+}
+
+.obj3d {
+  transform-style: preserve-3d;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.model {
+  width: 300px;
+  height: 300px;
+  margin: -150px;
+  animation: 10s spin linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotateY(1turn);
+  }
+}
+
+/* panels for the demo */
+
+.panel {
+  position: fixed;
+  padding: 1em;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.panel cite {
+  font-style: normal;
+}
+
+.panel a {
+  color: #fc0;
+}
+
+.panel--help {
+  background: rgba(255,255,255,.7);
+  top: 1em;
+  left: 1em;
+}
+
+.panel--about {
+  font-style: normal;
+  background: rgba(0,0,0,.5);
+  bottom: 1em;
+  left: 1em;
+  right: 1em;
+  color: #fff;
+}
+
+       
+    h1 {
+    margin: 0;
+}
+
+body {
+    /* Add a top margin to avoid content overlay */
+    max-width: 100%;
+    margin: 0;
+    overflow-x: hidden;
+    color: var(--pure);
+    background: var(--primary);
+    overflow: overlay;
+    overflow-y: scroll;
+}
+
+
+
+.header {
+    background-position: center center;
+}
+
+
+
+::-webkit-scrollbar {
+    width: 0px;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: none;
+}
+
+::-webkit-scrollbar-thumb {
+    background: white;
+    -webkit-box-shadow: none;
+}
+
+::-webkit-scrollbar-thumb:window-inactive {
+    background: none;
+}
+
+.section {
+    margin-top: 30px;
+    /* Add a top margin to avoid content overlay */
+    position: relative;
+    margin: 0;
+    padding: 0;
+    min-height: 70vh;
+    background-size: cover;
+    flex-wrap: wrap;
+}
+
+.pg2button {
+    width: 150px;
+    height: 50px;
+    cursor: pointer;
+    background: #ffffff;
+    margin: 10px;
+    border: none;
+    border-radius: 7px;
+    box-shadow: -5px -5px 15px #dafcfe, 5px 5px 15px #c2fbfe;
+    color: #001315;
+    font-size: 16px;
+}
+
+.pg2button:hover {
+    box-shadow: inset 5px 5px 10px #cafbfe, inset -5px -5px 10px #cafbfe;
+    font-size: 16px;
+    transition: 10000ms;
+}
+
+.pg2button:focus {
+    outline: none;
+}
+
+.mainbox {
+    position: relative;
+    left: 40%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 56vh;
+    width: 80%;
+    background: transparent;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.centerbox {
+    position: fixed;
+    height: 85%;
+    width: 450px;
+    background: transparent;
+    border-radius: 25px;
+    padding: 50px;
+    margin-left: -20%;
+}
+
+.centerbox h1 {
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+}
+
+.centerbox .sec3main1 {
+    font-size: 30px;
+    margin-bottom: 40px;
+}
+
+.centerbox .sec3main2 {
+    font-size: 20px;
+}
+
+.section2 h1 {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.mainb {
+    color: white;
+    font-size: 30px;
+    margin-bottom: 20px;
+    margin-top: 10%
+}
+
+.subb {
+    font-size: 20px;
+}
+
+.sec2_container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.section2 div {
+    width: 70%;
+    height: 50vh;
+    justify-self: center;
+    padding: 5%;
+    border-radius: 25px;
+}
+
+.sectoin2 div img {
+    display: block;
+    margin: auto;
+}
+
+
+.pg2box {
+    position: absolute;
+    height: 70vh;
+    width: 100%;
+    top: 50%;
+    transform: translate(0, -50%);
+    padding: 10px;
+    background: transparent;
+    align-items: center;
+}
+
+.divleft_sub {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+    margin-left: 15%;
+}
+
+.pg2head {
+    color: black;
+    text-align: left;
+    transform: translate(0, -50%);
+    font-family: 'Fira Code', monospace;
+    width: 100%;
+}
+
+.pg2hea {
+    color: white;
+    text-align: left;
+    font-family: 100px;
+    transform: translate(0, -50%);
+    font-family: 'Fira Code', monospace;
+}
+
+.pg2sub {
+    transform: translate(0, -25%);
+    color: grey;
+    font-family: 'Fira Code', monospace;
+    text-align: left;
+    font-size: 20px;
+    margin-top: 20px;
+    font-weight: 100;
+    width: 50%;
+}
+
+.divleft {
+    width: 50%;
+    height: 100%;
+    float: left;
+}
+
+.divright {
+    width: 50%;
+    height: 100%;
+    float: left;
+}
+
+.divright_img {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.netimg {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+
+/* Add a black background color to the top navigation */
+
+.sidenav {
+    height: 100%;
+    /* 100% Full-height */
+    width: 0;
+    /* 0 width - change this with JavaScript */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Stay on top */
+    top: 0;
+    /* Stay at the top */
+    right: 0;
+    background-color: #111;
+    /* Black*/
+    overflow-x: hidden;
+    /* Disable horizontal scroll */
+    padding-top: 60px;
+    /* Place content 60px from the top */
+    transition: 0.5s;
+    /* 0.5 second transition effect to slide in the sidenav */
+}
+
+
+/* The navigation menu links */
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+
+/* When you mouse over the navigation links, change their color */
+
+.sidenav a:hover {
+    color: #f1f1f1;
+}
+
+
+/* Position and style the close button (top right corner) */
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+
+/* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+
+#main {
+    transition: margin-left .5s;
+    padding: 20px;
+}
+
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+
+
+.logo {
+    max-width: 100px;
+    position: relative;
+}
+
+.header {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    transform-style: inherit;
+    z-index: -1;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: block;
+    background-size: cover;
+    transform: translateZ(-1px) scale(2.1);
+    min-height: 100%;
+    z-index: -2;
+}
+
+.topnav {
+    position: fixed;
+    /* Set the navbar to fixed position */
+    top: 0;
+    /* Position the navbar at the top of the page */
+    width: 100%;
+    /* Full width */
+    height: 0;
+    z-index: 100;
+}
+
+.hero {
+    position: relative;
+}
+
+.hero .cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: calc(100vh - 80px);
+    padding-top: 10vh;
+    flex-wrap: wrap;
+}
+
+.hero .cta h1 {
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.7;
+}
+
+.hero .cta>div {
+    flex: 1;
+}
+
+.hero .cta .main-section h1 {
+    justify-content: center;
+    font-family: 'Fira Code', monospace;
+    font-weight: bold;
+}
+
+.hero .cta .right-section img {
+    height: 70vh;
+    transform: rotate(20deg);
+    animation: moveInSpace 12s ease-in-out infinite alternate;
+    ;
+}
+</style> 
+
+{% endblock %}
