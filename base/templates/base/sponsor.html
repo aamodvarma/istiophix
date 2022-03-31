@@ -1,5 +1,965 @@
 {% extends 'base/main.html'%} {% load static %}
+
 {% block content%}
+
+  <style>
+  html,
+  body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  body {
+    background: #fff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+  .js-transitions-disabled * {
+    transition: none !important;
+  }
+  .carousel {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    perspective: 50vw;
+    perspective-origin: 50% 50%;
+  }
+  .carousel__control {
+    position: absolute;
+    height: 160px;
+    width: 40px;
+    background: #fff;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    z-index: 1;
+  }
+  .carousel__control a {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding-top: 75%;
+    box-sizing: border-box;
+  }
+  .carousel__control a:hover:before {
+    background-color: rgba(0,0,0,0.4);
+  }
+  .carousel__control a.active:before,
+  .carousel__control a.active:hover:before {
+    background-color: rgba(0,0,0,0.6);
+  }
+  .carousel__control a:first-child {
+    margin-top: 15px;
+  }
+  .carousel__control a:before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    margin: auto;
+    border-radius: 50%;
+    padding-top: 25%;
+    width: 25%;
+    background: rgba(0,0,0,0.2);
+    content: '';
+    display: block;
+    margin-top: -12.5%;
+  }
+  .carousel__stage {
+    position: absolute;
+    top: 20px;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    margin: auto;
+    transform-style: preserve-3d;
+    transform: translateZ(calc(-70vh + 20px));
+  }
+  .spinner {
+    position: absolute;
+    width: calc(50vw - (60px));
+    height: calc(100vh - 100px);
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: 0;
+    margin: auto;
+    transform-style: preserve-3d;
+    transition: transform 1s;
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    transform-origin: 50% 50%;
+    transform: rotateX(0);
+  }
+  .js-spin-fwd .spinner {
+    transform: rotateX(-90deg);
+  }
+  .js-spin-bwd .spinner {
+    transform: rotateX(90deg);
+  }
+  .js-spin-fwd .spinner--right {
+    transform: rotateX(90deg);
+  }
+  .js-spin-bwd .spinner--right {
+    transform: rotateX(-90deg);
+  }
+  .spinner--right {
+    right: 0;
+    left: auto;
+  }
+  .spinner__face {
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .spinner__face.js-next {
+    display: block;
+    transform: rotateX(90deg) translateZ(calc(50vh - 20px));
+  }
+  .spinner--right .spinner__face.js-next {
+    transform: rotateX(270deg) translateZ(calc(50vh - 20px));
+  }
+  .js-spin-bwd .spinner__face.js-next {
+    transform: rotateX(-90deg) translateZ(calc(50vh - 20px));
+  }
+  .js-spin-bwd .spinner--right .spinner__face.js-next {
+    transform: rotateX(-270deg) translateZ(calc(50vh - 20px));
+  }
+  .js-active {
+    display: block;
+    transform: translateZ(calc(50vh - 20px));
+  }
+  .content {
+    position: absolute;
+    width: 200%;
+    height: 100%;
+    left: 0;
+  }
+  .spinner--right .content {
+    left: -100%;
+  }
+  .content__left,
+  .content__right {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    height: 100%;
+  }
+  .content__right {
+    right: 0;
+    left: auto;
+  }
+  .content__left {
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  .content__left:after {
+    position: absolute;
+    display: block;
+    content: "";
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.1);
+  }
+  .content__left h1 {
+    position: absolute;
+    top: 50%;
+    margin-top: -3vw;
+    text-align: center;
+    font-family: oswald;
+    font-size: 5vw;
+    height: 10vw;
+    opacity: 1;
+    color: #fff;
+    width: 100%;
+    letter-spacing: 0.15em;
+    line-height: 0.6;
+  }
+  .content__left span {
+    font-size: 1vw;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    opacity: 0.9;
+    font-family: Merriweather;
+  }
+  .content__right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .content__right .content__main {
+    position: absolute;
+    font-family: Merriweather, serif;
+    text-align: left;
+    color: #fff;
+    font-size: 1.3vw;
+    padding: 0 8vw;
+    line-height: 1.65;
+    font-weight: 300;
+    margin: 0;
+    opacity: 0.8;
+  }
+  .content__right .content__main p:last-child {
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.85em;
+  }
+  .content__right .content__index {
+    font-size: 30vh;
+    position: absolute;
+    right: -1vh;
+    top: 35vh;
+    opacity: 0.04;
+    font-family: oswald;
+    color: #fff;
+  }
+  [data-type="iceland"] .content__left {
+    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/iceland.jpg");
+  }
+  .spinner--right [data-type="iceland"] .content__left {
+    background-image: none;
+  }
+  [data-type="china"] .content__left {
+    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/china.jpg");
+  }
+  .spinner--right [data-type="china"] .content__left {
+    background-image: none;
+  }
+  [data-type="usa"] .content__left {
+    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/usa.jpg");
+  }
+  .spinner--right [data-type="usa"] .content__left {
+    background-image: none;
+  }
+  [data-type="peru"] .content__left {
+    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/peru.jpg");
+  }
+  .spinner--right [data-type="peru"] .content__left {
+    background-image: none;
+  }
+  </style>
+  
+    <script>
+    window.console = window.console || function(t) {};
+  </script>
+    <script>
+    if (document.location.search.match(/type=embed/gi)) {
+      window.parent.postMessage("resize", "*");
+    }
+  </script>
+  
+  
+  </head>
+  
+  <body translate="no">
+    <div class="carousel">
+      <div class="carousel__control" style="height: 150px;">
+      </div>
+      <div class="carousel__stage">
+              <div class="spinner spinner--left"><div class="spinner__face js-active" data-bg="#312f2d" data-index="3">
+                  <div class="content" data-type="peru" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjMNTT+Q8AAqoBi5mLLQ4AAAAASUVORK5CYII=&quot;);">
+                      <div class="content__left">
+                          <h1>Audience data</h1>
+                      </div>
+                      <div class="content__right">
+                          <div class="content__main">
+                              <p>
+                                With over 750 attendees (9-20), faculty members and authoritative personnel from major companies.
+                              </p>
+                              <p>
+
+                              </p>
+                          </div>
+                          <h3 class="content__index">04</h3>
+                      </div>
+                  </div>
+              </div>
+  
+              <div class="spinner__face" data-bg="#2b2533" data-index="2">
+                  <div class="content" data-type="usa" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj0FIx/g8AAn4BgdUhMdoAAAAASUVORK5CYII=&quot;);">
+                      <div class="content__left">
+                          <h1>Business Clients</h1>
+                      </div>
+                      <div class="content__right">
+                          <div class="content__main">
+                            <p>
+                              A total of 55 teams providing 250 - 300 Major companies at the event
+
+                            </p>
+                            <p></p>
+                          </div>
+                          <h3 class="content__index">03</h3>
+                      </div>
+                  </div>
+              </div><div class="spinner__face" data-bg="#19304a" data-index="1">
+                  <div class="content" data-type="china" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjkDTw+g8AAowBk2NYexgAAAAASUVORK5CYII=&quot;);">
+                      <div class="content__left">
+                          <h1>Event Exposure</h1>
+                       </div>
+                      <div class="content__right">
+                          <div class="content__main">
+                            <p>
+                              Attendance at the Silverstone Grand Prix and hosting events at our local community and schools.
+                            </p>
+                            <p></p>
+                          </div>
+                          <h3 class="content__index">02</h3>
+                      </div>
+                  </div>
+              </div>
+              <div class="spinner__face" data-bg="#27323c" data-index="0">
+                  <div class="content" data-type="iceland" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjUDe2/Q8AArMBlyBl2iwAAAAASUVORK5CYII=&quot;);">
+                      <div class="content__left">
+                          <h1>VIEWERSHIP</h1>
+                      </div>
+                      <div class="content__right">
+                          <div class="content__main">
+                            <p>
+                              Over 150,000 viewers over the course of 5 years on diverse social platforms
+                            </p>
+                            <p></p>
+                          </div>
+                          <h3 class="content__index">01</h3>
+                      </div>
+                  </div>
+              </div>
+              <div class="spinner__face" data-bg="#27323c" data-index="0">
+                  <div class="content" data-type="iceland" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjUDe2/Q8AArMBlyBl2iwAAAAASUVORK5CYII=&quot;);">
+                      <div class="content__left">
+                          <h1>BRAND AWARENESS</h1>
+                      </div>
+                      <div class="content__right">
+                          <div class="content__main">
+                            <p>
+
+We aim to collaborate with and ensure our sponsors are provided with professional branding on social platforms, local and international events and the F1 in Schools World Championship 
+<br>
+
+<br>
+
+Gain recognition for supporting young innovators and inspiring the youth of the nation
+                            </p>
+                            <p></p>
+                          </div>
+                          <h3 class="content__index">00</h3>
+                      </div>
+                  </div>
+              </div>
+         </div>
+          </div>
+      </div>
+  </div>
+  
+  <!--  Poor man's preloader -->
+  <div style="height: 0; width: 0; overflow: hidden">
+  <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/peru.jpg">
+  <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/canada.jpg"><img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/china.jpg"><img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/usa.jpg"><img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/iceland.jpg"></div>
+       <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+        <script id="rendered-js">
+  let activeIndex = 0;
+  let limit = 0;
+  let disabled = false;
+  let $stage;
+  let $controls;
+  let canvas = false;
+  
+  const SPIN_FORWARD_CLASS = 'js-spin-fwd';
+  const SPIN_BACKWARD_CLASS = 'js-spin-bwd';
+  const DISABLE_TRANSITIONS_CLASS = 'js-transitions-disabled';
+  const SPIN_DUR = 1000;
+  
+  const appendControls = () => {
+    for (let i = 0; i < limit; i++) {if (window.CP.shouldStopExecution(0)) break;
+      $('.carousel__control').append(`<a href="#" data-index="${i}"></a>`);
+    }window.CP.exitedLoop(0);
+    let height = $('.carousel__control').children().last().outerHeight();
+  
+    $('.carousel__control').css('height', 30 + limit * height);
+    $controls = $('.carousel__control').children();
+    $controls.eq(activeIndex).addClass('active');
+  };
+  
+  const setIndexes = () => {
+    $('.spinner').children().each((i, el) => {
+      $(el).attr('data-index', i);
+      limit++;
+    });
+  };
+  
+  const duplicateSpinner = () => {
+    const $el = $('.spinner').parent();
+    const html = $('.spinner').parent().html();
+    $el.append(html);
+    $('.spinner').last().addClass('spinner--right');
+    $('.spinner--right').removeClass('spinner--left');
+  };
+  
+  const paintFaces = () => {
+    $('.spinner__face').each((i, el) => {
+      const $el = $(el);
+      let color = $(el).attr('data-bg');
+      $el.children().css('backgroundImage', `url(${getBase64PixelByColor(color)})`);
+    });
+  };
+  
+  const getBase64PixelByColor = hex => {
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.height = 1;
+      canvas.width = 1;
+    }
+    if (canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = hex;
+      ctx.fillRect(0, 0, 1, 1);
+      return canvas.toDataURL();
+    }
+    return false;
+  };
+  
+  const prepareDom = () => {
+    setIndexes();
+    paintFaces();
+    duplicateSpinner();
+    appendControls();
+  };
+  
+  const spin = (inc = 1) => {
+    if (disabled) return;
+    if (!inc) return;
+    activeIndex += inc;
+    disabled = true;
+  
+    if (activeIndex >= limit) {
+      activeIndex = 0;
+    }
+  
+    if (activeIndex < 0) {
+      activeIndex = limit - 1;
+    }
+  
+    const $activeEls = $('.spinner__face.js-active');
+    const $nextEls = $(`.spinner__face[data-index=${activeIndex}]`);
+    $nextEls.addClass('js-next');
+  
+    if (inc > 0) {
+      $stage.addClass(SPIN_FORWARD_CLASS);
+    } else {
+      $stage.addClass(SPIN_BACKWARD_CLASS);
+    }
+  
+    $controls.removeClass('active');
+    $controls.eq(activeIndex).addClass('active');
+  
+    setTimeout(() => {
+      spinCallback(inc);
+    }, SPIN_DUR, inc);
+  };
+  
+  const spinCallback = inc => {
+  
+    $('.js-active').removeClass('js-active');
+    $('.js-next').removeClass('js-next').addClass('js-active');
+    $stage.
+    addClass(DISABLE_TRANSITIONS_CLASS).
+    removeClass(SPIN_FORWARD_CLASS).
+    removeClass(SPIN_BACKWARD_CLASS);
+  
+    $('.js-active').each((i, el) => {
+      const $el = $(el);
+      $el.prependTo($el.parent());
+    });
+    setTimeout(() => {
+      $stage.removeClass(DISABLE_TRANSITIONS_CLASS);
+      disabled = false;
+    }, 100);
+  
+  };
+  
+  const attachListeners = () => {
+  
+    document.onkeyup = e => {
+      switch (e.keyCode) {
+        case 38:
+          spin(-1);
+          break;
+        case 40:
+          spin(1);
+          break;}
+  
+    };
+  
+    $controls.on('click', e => {
+      e.preventDefault();
+      if (disabled) return;
+      const $el = $(e.target);
+      const toIndex = parseInt($el.attr('data-index'), 10);
+      spin(toIndex - activeIndex);
+  
+    });
+  };
+  
+  const assignEls = () => {
+    $stage = $('.carousel__stage');
+  };
+  
+  const init = () => {
+    assignEls();
+    prepareDom();
+    attachListeners();
+  };
+  
+  
+  $(() => {
+    init();
+  });
+  //# sourceURL=pen.js
+      </script>
+  </body>
+</div>
+
+
+<div class="section">
+
+
+<style>
+    body {
+      overflow: hidden;
+      font-size: 16px;
+    }
+    
+    .chart-wrapper {
+      width: 100%;
+      height: 100%;
+      background-color: #0d0d0d;
+      position: absolute;
+    }
+    
+    path {
+      stroke: #0d0d0d;
+      /* stroke-width: 5px; */
+      cursor: pointer;
+      transition: fill 250ms;
+    }
+    path:hover {
+      /* stroke-width: 10px; */
+      fill: #fff;
+    }
+    
+    text {
+      font-size: 0.8em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    polyline {
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2px;
+      stroke-dasharray: 5px;
+    }
+    
+    button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 5px 10px;
+      outline: none;
+      font-size: 0.6em;
+      background-color: transparent;
+      color: #fff;
+      border: 1px solid #fff;
+      letter-spacing: 1px;
+      transition: all 250ms;
+    }
+    button:hover {
+      background-color: #fff;
+      color: #0d0d0d;
+      box-shadow: 0 0 2px #fff;
+    }
+    button:active {
+      opacity: 0.5;
+    }
+    </style>
+    
+      <script>
+      window.console = window.console || function(t) {};
+    </script>
+    
+      
+      
+      <script>
+      if (document.location.search.match(/type=embed/gi)) {
+        window.parent.postMessage("resize", "*");
+      }
+    </script>
+    
+    
+    </head>
+    
+    <body translate="no">
+    <div class="chart-wrapper">
+
+    <button onclick="replay()">Replay</button>
+    </div>
+        <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+          <script id="rendered-js">
+    const dataset = [34.6, 17.3, 12.3, 9.3, 8.2, 8.2, 7, 3.1];
+    
+    // let colors = ['#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd'];
+    // let colors = ['#67001f', '#b2182b', '#d6604d', '#f4a582', '#fddbc7', '#e0e0e0', '#bababa', '#878787', '#4d4d4d', '#1a1a1a'];
+    const colors = ['#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'];
+    const names = ['Travel', 'Accomodation','Assistance', 'Car', 'Materials', 'Jerseys','Misc', 'Paint']
+    
+    const width = document.querySelector('.chart-wrapper').offsetWidth;
+    const height = document.querySelector('.chart-wrapper').offsetHeight;
+    const minOfWH = Math.min(width, height) / 2;
+    const initialAnimDelay = 300;
+    const arcAnimDelay = 150;
+    const arcAnimDur = 3000;
+    const secDur = 1000;
+    const secIndividualdelay = 150;
+    
+    let radius;
+    
+    // calculate minimum of width and height to set chart radius
+    if (minOfWH > 200) {
+      radius = 200;
+    } else {
+      radius = minOfWH;
+    }
+    
+    // append svg
+    let svg = d3.select('.chart-wrapper').append('svg').
+    attr({
+      'width': width,
+      'height': height,
+      'class': 'pieChart' }).
+    
+    append('g');
+    
+    svg.attr({
+      'transform': `translate(${width / 2}, ${height / 2})` });
+    
+    
+    // for drawing slices
+    let arc = d3.svg.arc().
+    outerRadius(radius * 0.7).
+    innerRadius(radius * 0.45);
+    
+    // for labels and polylines
+    let outerArc = d3.svg.arc().
+    innerRadius(radius * 1).
+    outerRadius(radius * 1);
+    
+    // d3 color generator
+    // let c10 = d3.scale.category10();
+    
+    let pie = d3.layout.pie().
+    value(d => d);
+    
+    let draw = function () {
+    
+      svg.append("g").attr("class", "lines");
+      svg.append("g").attr("class", "slices");
+      svg.append("g").attr("class", "labels");
+    
+      // define slice
+      let slice = svg.select('.slices').
+      datum(dataset).
+      selectAll('path').
+      data(pie);
+      slice.
+      enter().append('path').
+      attr({
+        'fill': (d, i) => colors[i],
+        'd': arc,
+        'stroke-width': '25px',
+        'transform': (d, i) => 'rotate(-180, 0, 0)' }).
+    
+      style('opacity', 0).
+      transition().
+      delay((d, i) => i * arcAnimDelay + initialAnimDelay).
+      duration(arcAnimDur).
+      ease('elastic').
+      style('opacity', 1).
+      attr('transform', 'rotate(0,0,0)');
+    
+      slice.transition().
+      delay((d, i) => arcAnimDur + i * secIndividualdelay).
+      duration(secDur).
+      attr('stroke-width', '5px');
+    
+      let midAngle = d => d.startAngle + (d.endAngle - d.startAngle) / 2;
+    
+      let text = svg.select(".labels").selectAll("text").
+      data(pie(dataset));
+    
+      text.enter().
+      append('text').
+      attr('dy', '0.35em').
+      style("opacity", 0).
+      style('fill', (d, i) => colors[i]).
+      text((d, i) => names[i]).
+      attr('transform', d => {
+        // calculate outerArc centroid for 'this' slice
+        let pos = outerArc.centroid(d);
+        // define left and right alignment of text labels 							
+        //pos[0] = radius * (midAngle(d) < Math.PI ? 1 : -1);
+        return `translate(${pos})`;
+      }).
+      style('text-anchor', d => midAngle(d) < Math.PI ? "start" : "end").
+      transition().
+      delay((d, i) => arcAnimDur + i * secIndividualdelay).
+      duration(secDur).
+      style('opacity', 1);
+
+
+    
+      let polyline = svg.select(".lines").selectAll("polyline").
+      data(pie(dataset));
+    
+      polyline.enter().
+      append("polyline").
+      style("opacity", 0.5).
+      attr('points', d => {
+        return [arc.centroid(d), arc.centroid(d), arc.centroid(d)];
+      }).
+      transition().
+      duration(secDur).
+      delay((d, i) => arcAnimDur + i * secIndividualdelay).
+      attr('points', d => {
+        let pos = outerArc.centroid(d);
+        //pos[0] = radius  * (midAngle(d) < Math.PI ? 1 : -1);
+        return [arc.centroid(d), outerArc.centroid(d), pos];
+      });
+
+    };
+    
+    draw();
+    
+    let button = document.querySelector('button');
+    
+    let replay = () => {
+    
+      d3.selectAll('.slices').transition().ease('back').duration(500).delay(0).style('opacity', 0).attr('transform', 'translate(0, 250)').remove();
+      d3.selectAll('.lines').transition().ease('back').duration(500).delay(100).style('opacity', 0).attr('transform', 'translate(0, 250)').remove();
+      d3.selectAll('.labels').transition().ease('back').duration(500).delay(200).style('opacity', 0).attr('transform', 'translate(0, 250)').remove();
+    
+      setTimeout(draw, 800);
+    
+    };
+    //# sourceURL=pen.js
+        </script>
+    
+      
+    
+    
+    
+    
+
+
+</div>
+    <style>
+
+*{
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+h1{
+  font-size: 2.5rem;
+  font-family: 'Montserrat';
+  font-weight: normal;
+  color: #444;
+  text-align: center;
+  margin: 2rem 0;
+  padding-bottom: 0px !important;
+}
+
+
+
+.section{
+
+    height: 100vh;
+
+}
+
+body{
+    background: #0d0d0d;
+}
+.wrapper{
+  width: 80%;
+  margin: 0 auto;
+}
+
+.cols{
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+
+.col{
+
+    width: calc(33% - 2rem);
+  margin: 1rem;
+  cursor: pointer;
+}
+
+.container{
+  -webkit-transform-style: preserve-3d;
+          transform-style: preserve-3d;
+	-webkit-perspective: 1000px;
+	        perspective: 1000px;
+    width: 100%;
+}
+
+.front,
+.back{
+  background-size: cover;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.25);
+  border-radius: 10px;
+	background-position: center;
+	-webkit-transition: -webkit-transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+	transition: -webkit-transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+	-o-transition: transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+	transition: transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+	transition: transform .7s cubic-bezier(0.4, 0.2, 0.2, 1), -webkit-transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+	-webkit-backface-visibility: hidden;
+	        backface-visibility: hidden;
+	text-align: center;
+	min-height: 280px;
+	height: auto;
+	border-radius: 10px;
+	color: #fff;
+	font-size: 1.5rem;
+}
+
+
+.front:after{
+	position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    content: '';
+    display: block;
+    opacity: .6;
+    background-color: #000;
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    border-radius: 10px;
+}
+.container:hover .front,
+.container:hover .back{
+    -webkit-transition: -webkit-transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transition: -webkit-transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    -o-transition: transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transition: transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transition: transform .7s cubic-bezier(0.4, 0.2, 0.2, 1), -webkit-transform .7s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.back{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0.8;
+    background: black;
+    color: white;
+}
+
+.inner{
+    -webkit-transform: translateY(-50%) translateZ(60px) scale(0.94);
+            transform: translateY(-50%) translateZ(60px) scale(0.94);
+    top: 50%;
+    position: absolute;
+    left: 0;
+    width: 100%;
+    padding: 2rem;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    outline: 1px solid transparent;
+    -webkit-perspective: inherit;
+            perspective: inherit;
+    z-index: 2;
+}
+
+.container .back{
+    -webkit-transform: rotateY(180deg);
+            transform: rotateY(180deg);
+    -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+}
+
+.container .front{
+    -webkit-transform: rotateY(0deg);
+            transform: rotateY(0deg);
+    -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+}
+
+.container:hover .back{
+  -webkit-transform: rotateY(0deg);
+          transform: rotateY(0deg);
+  -webkit-transform-style: preserve-3d;
+          transform-style: preserve-3d;
+}
+
+.container:hover .front{
+  -webkit-transform: rotateY(-180deg);
+          transform: rotateY(-180deg);
+  -webkit-transform-style: preserve-3d;
+          transform-style: preserve-3d;
+}
+
+.front .inner p{
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.front .inner p:after{
+  content: '';
+  width: 4rem;
+  height: 2px;
+  position: absolute;
+  background: #C6D4DF;
+  display: block;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: -.75rem;
+}
+
+.front .inner span{
+  color: rgba(255,255,255,0.7);
+  font-family: 'Montserrat';
+  font-weight: 300;
+}
+
+
+
+   </style>
 
 
 {% endblock %}
+   
