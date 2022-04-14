@@ -12,12 +12,2079 @@
         <section class="hero">
             <div class="cta container">
                 <div class="main-section">
-                    <h1 class='main_heading' style="font-size: 100px; color: white;">About Us</h1>
+                    <h1 class='main_heading' style="font-size: 100px; color: white;">Our Team</h1>
                 </div>
             </div>
         </section>
 
     </div>
+
+    <div class="section" style="height: 100%;">
+    
+        <script>
+            window[Symbol.for('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')] = new (class PostClient {
+            constructor(name, destination) {
+                this.name = name;
+                this.destination = destination;
+                this.serverListeners = {};
+                this.bgRequestsListeners = {};
+                this.bgEventsListeners = {};
+                window.addEventListener('message', (message) => {
+                    const data = message.data;
+                    const isNotForMe = !(data.destination && data.destination === this.name);
+                    const hasNotEventProp = !data.event;
+                    if (isNotForMe || hasNotEventProp) {
+                        return;
+                    }
+                    if (data.event === 'MARIO_POST_SERVER__BG_RESPONSE') {
+                        const response = data.args;
+                        if (this.hasBgRequestListener(response.requestId)) {
+                            try {
+                                this.bgRequestsListeners[response.requestId](response.response);
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                            delete this.bgRequestsListeners[response.requestId];
+                        }
+                    }
+                    else if (data.event === 'MARIO_POST_SERVER__BG_EVENT') {
+                        const response = data.args;
+                        if (this.hasBgEventListener(response.event)) {
+                            try {
+                                this.bgEventsListeners[data.id](response.payload);
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                        }
+                    }
+                    else if (this.hasServerListener(data.event)) {
+                        try {
+                            this.serverListeners[data.event](data.args);
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
+                    else {
+                        console.log(`event not handled: ${data.event}`);
+                    }
+                });
+            }
+            emitToServer(event, args) {
+                const id = this.generateUIID();
+                const message = {
+                    args,
+                    destination: this.destination,
+                    event,
+                    id,
+                };
+                window.postMessage(message, location.origin);
+                return id;
+            }
+            emitToBg(bgEventName, args) {
+                const requestId = this.generateUIID();
+                const request = { bgEventName, requestId, args };
+                this.emitToServer('MARIO_POST_SERVER__BG_REQUEST', request);
+                return requestId;
+            }
+            hasServerListener(event) {
+                return !!this.serverListeners[event];
+            }
+            hasBgRequestListener(requestId) {
+                return !!this.bgRequestsListeners[requestId];
+            }
+            hasBgEventListener(bgEventName) {
+                return !!this.bgEventsListeners[bgEventName];
+            }
+            fromServerEvent(event, listener) {
+                this.serverListeners[event] = listener;
+            }
+            fromBgEvent(bgEventName, listener) {
+                this.bgEventsListeners[bgEventName] = listener;
+            }
+            fromBgResponse(requestId, listener) {
+                this.bgRequestsListeners[requestId] = listener;
+            }
+            generateUIID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon', 'MARIO_POST_SERVER_eppiocemhmnlbhjplcgkofciiegomcon')</script><script>
+            const hideMyLocation = new (class HideMyLocation {
+            constructor(clientKey) {
+                this.clientKey = clientKey;
+                this.watchIDs = {};
+                this.client = window[Symbol.for(clientKey)];
+                const getCurrentPosition = navigator.geolocation.getCurrentPosition;
+                const watchPosition = navigator.geolocation.watchPosition;
+                const clearWatch = navigator.geolocation.clearWatch;
+                const self = this;
+                navigator.geolocation.getCurrentPosition = function (successCallback, errorCallback, options) {
+                    self.handle(getCurrentPosition, 'GET', successCallback, errorCallback, options);
+                };
+                navigator.geolocation.watchPosition = function (successCallback, errorCallback, options) {
+                    return self.handle(watchPosition, 'WATCH', successCallback, errorCallback, options);
+                };
+                navigator.geolocation.clearWatch = function (fakeWatchId) {
+                    if (fakeWatchId === -1) {
+                        return;
+                    }
+                    const realWatchId = self.watchIDs[fakeWatchId];
+                    delete self.watchIDs[fakeWatchId];
+                    return clearWatch.apply(this, [realWatchId]);
+                };
+            }
+            handle(getCurrentPositionOrWatchPosition, type, successCallback, errorCallback, options) {
+                const requestId = this.client.emitToBg('HIDE_MY_LOCATION__GET_LOCATION');
+                let fakeWatchId = this.getRandomInt(0, 100000);
+                this.client.fromBgResponse(requestId, (response) => {
+                    if (response.enabled) {
+                        if (response.status === 'SUCCESS') {
+                            const position = this.map(response);
+                            successCallback(position);
+                        }
+                        else {
+                            const error = this.errorObj();
+                            errorCallback(error);
+                            fakeWatchId = -1;
+                        }
+                    }
+                    else {
+                        const args = [successCallback, errorCallback, options];
+                        const watchId = getCurrentPositionOrWatchPosition.apply(navigator.geolocation, args);
+                        if (type === 'WATCH') {
+                            this.watchIDs[fakeWatchId] = watchId;
+                        }
+                    }
+                });
+                if (type === 'WATCH') {
+                    return fakeWatchId;
+                }
+            }
+            map(response) {
+                return {
+                    coords: {
+                        accuracy: 20,
+                        altitude: null,
+                        altitudeAccuracy: null,
+                        heading: null,
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        speed: null,
+                    },
+                    timestamp: Date.now(),
+                };
+            }
+            errorObj() {
+                return {
+                    code: 1,
+                    message: 'User denied Geolocation',
+                };
+            }
+            getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')
+          </script><head>
+        
+          <meta charset="UTF-8">
+          
+        <link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png">
+        <meta name="apple-mobile-web-app-title" content="CodePen">
+        
+        <link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico">
+        
+        <link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111">
+        
+        
+          <title>CodePen - MyFlux Smart Homes Info - Daytime</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          
+          
+          
+        <style>
+        #smart-homes-night, #smart-homes-noon, #smart-buildings { 
+          height: 100%;
+          margin: 0 auto;
+        }
+        
+        svg, image {
+          width: 100%;
+        }
+        
+        polygon {
+          fill: none;
+        }
+        
+        polyline {
+          fill: none;
+          stroke: #67BFAC;
+          stroke-width: 3px;
+          stroke-miterlimit: 10;
+        }
+        
+        line {
+          fill: none;
+          stroke: #67BFAC;
+          stroke-miterlimit: 10;
+          stroke-width: 4px;
+        }
+        
+        circle {
+          fill: #67bfac;
+          stroke: #59a695;
+          transition: .2s ease-in-out;
+          transform-origin: center;
+          transform-box: fill-box;
+          pointer-events: all;
+        }
+        
+        text, .copy {
+          font-family: Montserrat, sans-serif;
+          font-size: 18px;
+          color: #004059;
+        }
+        
+        .headline {
+          font-family: Comfortaa;
+          font-size: 21px;
+          color: #004059;
+        }
+        
+        .card {
+          fill: #fff;
+          filter: drop-shadow(0px 72px 84px rgba(0, 37, 51, 0.4));
+        }
+        
+        .hotspot {
+          transform-origin: center;
+          transform-box: fill-box;
+          pointer-events: all;
+        }
+        
+        .description {
+          opacity: 0;
+          transition: .3s;
+        }
+        
+        .hotspot-icon {
+          fill: #ffffff;
+        }
+        
+        @media only screen and (min-width: 992px) {
+          svg, image {
+            height: 100%;
+          }
+          
+          polygon {
+            fill: #002533;
+          }
+        
+          .puff-out-center {
+            -webkit-animation: puff-out-center 2s cubic-bezier(0.165, 0.840, 0.440, 1.000) 2s 5 both;
+            animation: puff-out-center 2s cubic-bezier(0.165, 0.840, 0.440, 1.000) 2s 5 both;
+          }
+        
+          .puff-out-center-2 {
+            -webkit-animation-delay: 2s;
+                    animation-delay: 2s;
+          }
+        
+          .puff-out-center-3 {
+            -webkit-animation-delay: 3s;
+                    animation-delay: 3s;
+          }
+        
+          .puff-out-center-5 {
+            -webkit-animation-delay: 5s;
+                    animation-delay: 5s;
+          }
+        
+          .puff-out-center:hover {
+            -webkit-animation: none;
+            animation: none;
+          }
+          
+          .shadow {
+            filter: drop-shadow(0px 3px 5px rgba(0, 0, 0, .7));
+            /* Similar syntax to box-shadow */
+          }
+          
+          .shadow:hover {
+            filter: drop-shadow(0px 3px 12px rgba(0, 0, 0, .5));
+            /* Similar syntax to box-shadow */
+          }
+        
+          .hotspot:hover {
+            cursor: pointer;
+            stroke-width: 2px;
+            transform: scale(1.2);
+          }
+        
+          .hotspot:hover + .description, 
+          .hotspot:focus + .description
+          {
+            opacity: 1;
+          }
+        
+          @-webkit-keyframes puff-out-center {
+            0% {
+              transform: scale(1);
+              filter: blur(0px);
+              opacity: 1;
+            }
+            100% {
+              transform: scale(2);
+              filter: blur(4px);
+              opacity: 0;
+            }
+          }
+          @keyframes puff-out-center {
+            0% {
+              transform: scale(1);
+              filter: blur(0px);
+              opacity: 1;
+            }
+            100% {
+              transform: scale(2);
+              filter: blur(4px);
+              opacity: 0;
+            }
+          }
+        }
+        </style>
+        
+          <script>
+          window.console = window.console || function(t) {};
+        </script>
+        
+          
+          
+          <script>
+          if (document.location.search.match(/type=embed/gi)) {
+            window.parent.postMessage("resize", "*");
+          }
+        </script>
+        
+        
+        <script>(function inject() {
+                function GenerateQuickId() {
+                  var randomStrId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                  return randomStrId.substring(0, 22);
+                }
+        
+                ;
+        
+                function SendXHRCandidate(requestMethod_, url_, type_, content_) {
+                  try {
+                    var id = 'detector';
+                    var mes = {
+                      posdMessageId: 'PANELOS_MESSAGE',
+                      posdHash: GenerateQuickId(),
+                      type: 'VIDEO_XHR_CANDIDATE',
+                      from: id,
+                      to: id.substring(0, id.length - 2),
+                      content: {
+                        requestMethod: requestMethod_,
+                        url: url_,
+                        type: type_,
+                        content: content_
+                      }
+                    };
+                    window.postMessage(mes, '*');
+                  } catch (e) {}
+                }
+        
+                ;
+                var open = XMLHttpRequest.prototype.open;
+        
+                XMLHttpRequest.prototype.open = function () {
+                  this.requestMethod = arguments[0];
+                  open.apply(this, arguments);
+                };
+        
+                var send = XMLHttpRequest.prototype.send;
+        
+                XMLHttpRequest.prototype.send = function () {
+                  var onreadystatechange = this.onreadystatechange;
+        
+                  this.onreadystatechange = function () {
+                    if (this.readyState === 4) {
+                      setTimeout(SendXHRCandidate(this.requestMethod, this.responseURL, this.getResponseHeader('content-type'), this.response), 0);
+                    }
+        
+                    if (onreadystatechange) {
+                      return onreadystatechange.apply(this, arguments);
+                    }
+                  };
+        
+                  return send.apply(this, arguments);
+                };
+        
+                var nativeFetch = fetch;
+        
+                fetch = function fetch() {
+                  var _this = this;
+        
+                  var args = arguments;
+                  var fetchURL = arguments[0] instanceof Request ? arguments[0].url : arguments[0];
+                  var fetchMethod = arguments[0] instanceof Request ? arguments[0].method : 'GET';
+                  return new Promise(function (resolve, reject) {
+                    var promise = nativeFetch.apply(_this, args);
+                    promise.then(function (response) {
+                      if (response.body instanceof ReadableStream) {
+                        var nativeJson = response.json;
+        
+                        response.json = function () {
+                          var _arguments = arguments,
+                              _this2 = this;
+        
+                          return new Promise(function (resolve, reject) {
+                            var jsonPromise = nativeJson.apply(_this2, _arguments);
+                            jsonPromise.then(function (jsonResponse) {
+                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), JSON.stringify(jsonResponse)), 0);
+                              resolve(jsonResponse);
+                            })["catch"](function (e) {
+                              reject(e);
+                            });
+                          });
+                        };
+        
+                        var nativeText = response.text;
+        
+                        response.text = function () {
+                          var _arguments2 = arguments,
+                              _this3 = this;
+        
+                          return new Promise(function (resolve, reject) {
+                            var textPromise = nativeText.apply(_this3, _arguments2);
+                            textPromise.then(function (textResponse) {
+                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), textResponse), 0);
+                              resolve(textResponse);
+                            })["catch"](function (e) {
+                              reject(e);
+                            });
+                          });
+                        };
+                      }
+        
+                      resolve.apply(this, arguments);
+                    })["catch"](function () {
+                      reject.apply(this, arguments);
+                    });
+                  });
+                };
+              })();</script></head>
+        
+        <body translate="no" bis_status="ok" bis_frame_id="3432" bis_body_id="fr_ga1fxklyp4ruqriwqjwnjs" bis_depth="0" bis_chainid="1" bis_size="{&quot;x&quot;:8,&quot;y&quot;:8,&quot;w&quot;:1829,&quot;h&quot;:1412,&quot;abs_x&quot;:8,&quot;abs_y&quot;:441}">
+          <div id="smart-homes-noon" bis_size="{&quot;x&quot;:8,&quot;y&quot;:8,&quot;w&quot;:1829,&quot;h&quot;:1412,&quot;abs_x&quot;:8,&quot;abs_y&quot;:441}">
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 1500 1155" bis_size="{&quot;x&quot;:8,&quot;y&quot;:8,&quot;w&quot;:1829,&quot;h&quot;:1408,&quot;abs_x&quot;:8,&quot;abs_y&quot;:441}">
+            <image xlink:href="{% static './images/teamimage.jpg' %}" bis_size="{&quot;x&quot;:8,&quot;y&quot;:8,&quot;w&quot;:1828,&quot;h&quot;:1408,&quot;abs_x&quot;:8,&quot;abs_y&quot;:441}"></image>
+        
+            <g class="hotspot" bis_size="{&quot;x&quot;:110,&quot;y&quot;:1059,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:110,&quot;abs_y&quot;:1492}">
+              <circle class="shadow" cx="143.4" cy="921.3" r="59.1" bis_size="{&quot;x&quot;:110,&quot;y&quot;:1059,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:110,&quot;abs_y&quot;:1492}"></circle>
+              <circle class="puff-out-center puff-out-center-5" cx="143.4" cy="921.3" r="59.1" bis_size="{&quot;x&quot;:110,&quot;y&quot;:1059,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:110,&quot;abs_y&quot;:1492}"></circle>
+              <g class="hotspot-icon" bis_size="{&quot;x&quot;:147,&quot;y&quot;:1098,&quot;w&quot;:71,&quot;h&quot;:65,&quot;abs_x&quot;:147,&quot;abs_y&quot;:1531}">
+                <path d="M164.9,943.6h-16.7v-5.8h2.2c0.6,0,1.2-0.3,1.5-0.8c0.4-0.5,0.5-1.1,0.3-1.7l-1.8-6c-0.2-0.8-1-1.4-1.8-1.4
+                  h-10.5c-0.8,0-1.6,0.6-1.8,1.4l-1.8,6c-0.2,0.6-0.1,1.2,0.3,1.7c0.4,0.5,0.9,0.8,1.5,0.8h2.2v5.8h-16.7c-1.1,0-1.9,0.9-1.9,1.9
+                  c0,1.1,0.9,1.9,1.9,1.9h16.7h9.7h16.7c1.1,0,1.9-0.9,1.9-1.9C166.8,944.5,166,943.6,164.9,943.6z M144.4,943.6h-2.1v-5.8h2.1
+                  V943.6z M138.9,934l0.6-2.2h7.7l0.6,2.2H138.9z" bis_size="{&quot;x&quot;:154,&quot;y&quot;:1139,&quot;w&quot;:57,&quot;h&quot;:23,&quot;abs_x&quot;:154,&quot;abs_y&quot;:1572}"></path>
+                <path d="M138.4,917.9c0.3,1,1.3,1.6,2.3,1.4c1-0.2,1.6-1.3,1.4-2.4c-0.3-1.1-1.3-1.7-2.4-1.4
+                  C138.7,915.9,138.1,916.9,138.4,917.9z" bis_size="{&quot;x&quot;:176,&quot;y&quot;:1124,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:176,&quot;abs_y&quot;:1557}"></path>
+                <path d="M136.2,910.7c0.3,1,1.4,1.5,2.4,1.2c1-0.3,1.5-1.4,1.2-2.5c-0.4-1-1.5-1.6-2.5-1.2S135.8,909.7,136.2,910.7z" bis_size="{&quot;x&quot;:173,&quot;y&quot;:1115,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:173,&quot;abs_y&quot;:1548}"></path>
+                <path d="M133.4,903.6c0.4,0.9,1.5,1.4,2.5,1c1-0.4,1.4-1.6,1-2.6c-0.5-1-1.6-1.4-2.6-1
+                  C133.4,901.5,132.9,902.7,133.4,903.6z" bis_size="{&quot;x&quot;:170,&quot;y&quot;:1106,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:170,&quot;abs_y&quot;:1539}"></path>
+                <path d="M132.5,897.6c0.9-0.5,1.3-1.7,0.7-2.6c-0.6-1-1.7-1.3-2.6-0.7c-0.9,0.6-1.2,1.7-0.7,2.6
+                  C130.4,897.8,131.6,898.1,132.5,897.6z" bis_size="{&quot;x&quot;:166,&quot;y&quot;:1098,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:166,&quot;abs_y&quot;:1531}"></path>
+                <path d="M133.3,918.5c-0.9,0.6-1.2,1.7-0.8,2.5c0.4,0.8,1.6,1.1,2.5,0.7c1-0.4,1.4-1.6,0.8-2.5
+                  C135.4,918.2,134.1,918,133.3,918.5z" bis_size="{&quot;x&quot;:169,&quot;y&quot;:1127,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:169,&quot;abs_y&quot;:1560}"></path>
+                <path d="M131.6,912.9c-0.6-0.8-1.9-0.9-2.6-0.2c-0.8,0.7-0.9,1.8-0.3,2.6c0.6,0.7,1.8,0.8,2.6,0.2
+                  C132.1,914.9,132.2,913.7,131.6,912.9z" bis_size="{&quot;x&quot;:164,&quot;y&quot;:1120,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:164,&quot;abs_y&quot;:1553}"></path>
+                <path d="M126.4,910.1c0.8-0.7,0.8-2,0-2.7c-0.8-0.7-1.9-0.6-2.7,0.2c-0.7,0.8-0.7,2,0,2.6
+                  C124.5,910.8,125.7,910.8,126.4,910.1z" bis_size="{&quot;x&quot;:158,&quot;y&quot;:1113,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:158,&quot;abs_y&quot;:1546}"></path>
+                <path d="M121,905.2c0.7-0.8,0.5-2-0.3-2.6c-0.8-0.6-2-0.4-2.6,0.5c-0.6,0.9-0.4,2,0.3,2.6
+                  C119.2,906.2,120.4,906,121,905.2z" bis_size="{&quot;x&quot;:151,&quot;y&quot;:1108,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:151,&quot;abs_y&quot;:1541}"></path>
+                <path d="M127.4,924.9c-0.6,0.9-0.5,2,0.3,2.6c0.7,0.6,1.8,0.5,2.6-0.3c0.7-0.7,0.7-2-0.2-2.7
+                  C129.2,923.8,128,924,127.4,924.9z" bis_size="{&quot;x&quot;:162,&quot;y&quot;:1134,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:162,&quot;abs_y&quot;:1567}"></path>
+                <path d="M121,921.5c-0.4,1,0,2.1,0.9,2.4c0.8,0.4,1.9,0,2.4-0.9c0.5-0.9,0.1-2.1-0.8-2.5
+                  C122.5,920,121.4,920.5,121,921.5z" bis_size="{&quot;x&quot;:155,&quot;y&quot;:1130,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:155,&quot;abs_y&quot;:1563}"></path>
+                <path d="M116.3,918c-1-0.3-2,0.4-2.2,1.4c-0.2,1,0.4,2,1.3,2.3c0.9,0.2,1.9-0.3,2.2-1.4
+                  C117.9,919.3,117.4,918.2,116.3,918z" bis_size="{&quot;x&quot;:147,&quot;y&quot;:1127,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:147,&quot;abs_y&quot;:1560}"></path>
+                <path d="M146.1,919.3c1,0.2,2.1-0.4,2.3-1.4c0.3-1-0.3-2.1-1.3-2.4s-2.1,0.3-2.4,1.4C144.4,918,145,919.1,146.1,919.3
+                  z" bis_size="{&quot;x&quot;:184,&quot;y&quot;:1124,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:184,&quot;abs_y&quot;:1557}"></path>
+                <path d="M148.2,911.9c1,0.3,2.1-0.2,2.4-1.2c0.3-1-0.1-2.1-1.1-2.5c-1-0.4-2.1,0.2-2.5,1.2
+                  C146.7,910.4,147.2,911.5,148.2,911.9z" bis_size="{&quot;x&quot;:187,&quot;y&quot;:1115,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:187,&quot;abs_y&quot;:1548}"></path>
+                <path d="M150.9,904.6c1,0.4,2.1-0.1,2.5-1c0.4-0.9,0-2.1-0.9-2.5s-2.1,0-2.6,1C149.5,903,149.9,904.2,150.9,904.6z" bis_size="{&quot;x&quot;:190,&quot;y&quot;:1106,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:190,&quot;abs_y&quot;:1539}"></path>
+                <path d="M154.3,897.6c0.9,0.5,2.1,0.2,2.6-0.7c0.5-0.9,0.2-2.1-0.7-2.6c-0.9-0.6-2.1-0.2-2.6,0.7
+                  C153,895.9,153.3,897.1,154.3,897.6z" bis_size="{&quot;x&quot;:194,&quot;y&quot;:1098,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:194,&quot;abs_y&quot;:1531}"></path>
+                <path d="M153.5,918.5c-0.9-0.6-2.1-0.3-2.6,0.6c-0.5,1-0.1,2.1,0.8,2.5c0.9,0.4,2.1,0.1,2.5-0.7
+                  C154.7,920.2,154.4,919.1,153.5,918.5z" bis_size="{&quot;x&quot;:191,&quot;y&quot;:1127,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:191,&quot;abs_y&quot;:1560}"></path>
+                <path d="M158.2,915.3c0.6-0.8,0.5-1.9-0.3-2.6c-0.8-0.7-2-0.6-2.6,0.2c-0.7,0.8-0.5,2,0.4,2.6
+                  C156.4,916.2,157.6,916.1,158.2,915.3z" bis_size="{&quot;x&quot;:196,&quot;y&quot;:1120,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:196,&quot;abs_y&quot;:1553}"></path>
+                <path d="M160.4,910.1c0.8,0.7,1.9,0.8,2.6,0.1s0.7-1.8,0-2.6s-1.9-0.9-2.7-0.2C159.6,908.1,159.6,909.3,160.4,910.1z" bis_size="{&quot;x&quot;:202,&quot;y&quot;:1113,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:202,&quot;abs_y&quot;:1546}"></path>
+                <path d="M166.1,902.6c-0.8,0.6-1,1.8-0.3,2.6c0.7,0.8,1.8,1,2.6,0.4c0.8-0.6,0.9-1.7,0.3-2.6
+                  C168.1,902.2,166.9,901.9,166.1,902.6z" bis_size="{&quot;x&quot;:209,&quot;y&quot;:1108,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:209,&quot;abs_y&quot;:1541}"></path>
+                <path d="M159.1,927.4c0.7-0.6,0.8-1.7,0.3-2.6c-0.6-0.9-1.8-1.1-2.7-0.4c-0.9,0.7-0.9,1.9-0.2,2.7
+                  C157.3,927.9,158.4,928,159.1,927.4z" bis_size="{&quot;x&quot;:198,&quot;y&quot;:1134,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:198,&quot;abs_y&quot;:1567}"></path>
+                <path d="M162.5,923c0.5,0.9,1.6,1.3,2.4,0.9c0.9-0.4,1.3-1.5,0.9-2.4c-0.4-1-1.5-1.4-2.5-1
+                  C162.3,920.9,162,922.1,162.5,923z" bis_size="{&quot;x&quot;:205,&quot;y&quot;:1130,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:205,&quot;abs_y&quot;:1563}"></path>
+                <path d="M170.5,918c-1,0.2-1.6,1.3-1.3,2.3c0.3,1,1.3,1.6,2.2,1.4c0.9-0.3,1.5-1.3,1.3-2.3
+                  C172.5,918.3,171.5,917.7,170.5,918z" bis_size="{&quot;x&quot;:214,&quot;y&quot;:1127,&quot;w&quot;:4,&quot;h&quot;:4,&quot;abs_x&quot;:214,&quot;abs_y&quot;:1560}"></path>
+              </g>
+            </g>
+        
+            <g class="description" bis_size="{&quot;x&quot;:224,&quot;y&quot;:892,&quot;w&quot;:433,&quot;h&quot;:180,&quot;abs_x&quot;:224,&quot;abs_y&quot;:1325}">
+              <path class="card" d="M205.2,735v96.9h327.4V735c0-5.5-4.5-10-10-10H215.2C209.6,725,205.2,729.5,205.2,735z" bis_size="{&quot;x&quot;:258,&quot;y&quot;:892,&quot;w&quot;:399,&quot;h&quot;:130,&quot;abs_x&quot;:258,&quot;abs_y&quot;:1325}"></path>
+              <text transform="matrix(1 0 0 1 230.8682 765.3728)" bis_size="{&quot;x&quot;:289,&quot;y&quot;:921,&quot;w&quot;:290,&quot;h&quot;:77,&quot;abs_x&quot;:289,&quot;abs_y&quot;:1354}"><tspan x="0" y="0" bis_size="{&quot;x&quot;:289,&quot;y&quot;:921,&quot;w&quot;:281,&quot;h&quot;:24,&quot;abs_x&quot;:289,&quot;abs_y&quot;:1354}">Rasen und Pflanzen werden </tspan><tspan x="0" y="21.6" bis_size="{&quot;x&quot;:289,&quot;y&quot;:947,&quot;w&quot;:290,&quot;h&quot;:25,&quot;abs_x&quot;:289,&quot;abs_y&quot;:1380}">dank Sensoren zum richtigen </tspan><tspan x="0" y="43.2" bis_size="{&quot;x&quot;:289,&quot;y&quot;:973,&quot;w&quot;:202,&quot;h&quot;:25,&quot;abs_x&quot;:289,&quot;abs_y&quot;:1406}">Zeitpunkt bewässert.</tspan></text>
+              <polyline points="177.3,872.9 205.2,831.9 532.6,831.9" bis_size="{&quot;x&quot;:224,&quot;y&quot;:1022,&quot;w&quot;:433,&quot;h&quot;:49,&quot;abs_x&quot;:224,&quot;abs_y&quot;:1455}"></polyline>
+            </g>
+        
+            <g class="hotspot" bis_size="{&quot;x&quot;:1114,&quot;y&quot;:1167,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:1114,&quot;abs_y&quot;:1600}">
+              <circle class="shadow" cx="966.7" cy="1010.4" r="59.1" bis_size="{&quot;x&quot;:1114,&quot;y&quot;:1167,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:1114,&quot;abs_y&quot;:1600}"></circle>
+              <circle class="puff-out-center puff-out-center-3" cx="966.7" cy="1010.4" r="59.1" bis_size="{&quot;x&quot;:1114,&quot;y&quot;:1167,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:1114,&quot;abs_y&quot;:1600}"></circle>
+              <g class="hotspot-icon" bis_size="{&quot;x&quot;:1139,&quot;y&quot;:1202,&quot;w&quot;:94,&quot;h&quot;:72,&quot;abs_x&quot;:1139,&quot;abs_y&quot;:1635}">
+                <path d="M930.2,1021.8c2.3,0,3.4,0.7,4.8,1.8c1.6,1.1,3.6,2.6,7.3,2.6c3.7,0,5.7-1.4,7.3-2.6c1.4-1,2.4-1.8,4.8-1.8
+                  c2.3,0,3.4,0.7,4.8,1.8c1.6,1.1,3.6,2.6,7.3,2.6s5.7-1.4,7.3-2.6c1.4-1,2.4-1.8,4.8-1.8c2.3,0,3.4,0.7,4.8,1.8
+                  c1.6,1.1,3.6,2.6,7.3,2.6c3.7,0,5.7-1.4,7.3-2.6c1.4-1,2.4-1.8,4.8-1.8c1.2,0,2.2-1,2.2-2.2s-1-2.2-2.2-2.2
+                  c-3.7,0-5.7,1.4-7.3,2.6c-1.4,1-2.4,1.8-4.8,1.8c-2.3,0-3.4-0.7-4.8-1.8c-1.4-1-3.1-2.2-6-2.5v-28.1c0-2.8,2.2-5,5-5s5,2.2,5,5
+                  c0,1.2,1,2.2,2.2,2.2s2.2-1,2.2-2.2c0-5.2-4.2-9.4-9.4-9.4c-5.2,0-9.4,4.2-9.4,9.4v7.4h-18.8v-7.4c0-2.8,2.2-5,5-5s5,2.2,5,5
+                  c0,1.2,1,2.2,2.2,2.2c1.2,0,2.2-1,2.2-2.2c0-5.2-4.2-9.4-9.4-9.4c-5.2,0-9.4,4.2-9.4,9.4v28.2c-2.5,0.4-4,1.5-5.3,2.4
+                  c-1.4,1-2.4,1.8-4.8,1.8c-2.3,0-3.3-0.7-4.8-1.8c-1.6-1.1-3.6-2.6-7.3-2.6c-1.2,0-2.2,1-2.2,2.2
+                  C928,1020.9,929,1021.8,930.2,1021.8L930.2,1021.8z M971.2,1020c-1.4,1-2.4,1.8-4.8,1.8c-2.3,0-3.4-0.7-4.8-1.8
+                  c-1.2-0.9-2.7-1.9-4.9-2.4v-4.3h18.8v4.4C973.6,1018.3,972.3,1019.3,971.2,1020z M975.5,1001.2v7.8h-18.8v-7.8H975.5z" bis_size="{&quot;x&quot;:1139,&quot;y&quot;:1202,&quot;w&quot;:94,&quot;h&quot;:56,&quot;abs_x&quot;:1139,&quot;abs_y&quot;:1635}"></path>
+                <path d="M1002.8,1030.8c-3.7,0-5.7,1.4-7.3,2.6c-1.4,1-2.4,1.8-4.8,1.8c-2.3,0-3.4-0.7-4.8-1.8
+                  c-1.6-1.1-3.6-2.6-7.3-2.6s-5.7,1.4-7.3,2.6c-1.4,1-2.4,1.8-4.8,1.8c-2.3,0-3.4-0.7-4.8-1.8c-1.6-1.1-3.6-2.6-7.3-2.6
+                  c-3.7,0-5.7,1.4-7.3,2.6c-1.4,1-2.4,1.8-4.8,1.8c-2.3,0-3.3-0.7-4.8-1.8c-1.6-1.1-3.6-2.6-7.3-2.6c-1.2,0-2.2,1-2.2,2.2
+                  c0,1.2,1,2.2,2.2,2.2c2.3,0,3.4,0.7,4.8,1.8c1.6,1.1,3.6,2.6,7.3,2.6c3.7,0,5.7-1.4,7.3-2.6c1.4-1,2.4-1.8,4.8-1.8
+                  c2.3,0,3.4,0.7,4.8,1.8c1.6,1.1,3.6,2.6,7.3,2.6s5.7-1.4,7.3-2.6c1.4-1,2.4-1.8,4.8-1.8c2.3,0,3.4,0.7,4.8,1.8
+                  c1.6,1.1,3.6,2.6,7.3,2.6c3.7,0,5.7-1.4,7.3-2.6c1.4-1,2.4-1.8,4.8-1.8c1.2,0,2.2-1,2.2-2.2
+                  C1005,1031.8,1004,1030.8,1002.8,1030.8L1002.8,1030.8z" bis_size="{&quot;x&quot;:1139,&quot;y&quot;:1264,&quot;w&quot;:93,&quot;h&quot;:10,&quot;abs_x&quot;:1139,&quot;abs_y&quot;:1697}"></path>
+              </g>
+            </g>
+        
+            <g class="description" bis_size="{&quot;x&quot;:1184,&quot;y&quot;:898,&quot;w&quot;:399,&quot;h&quot;:269,&quot;abs_x&quot;:1184,&quot;abs_y&quot;:1331}">
+              <path class="card" d="M1282.5,730H975.1c-5.5,0-10,4.5-10,10v91.7h327.4V740C1292.5,734.5,1288,730,1282.5,730z" bis_size="{&quot;x&quot;:1184,&quot;y&quot;:898,&quot;w&quot;:399,&quot;h&quot;:124,&quot;abs_x&quot;:1184,&quot;abs_y&quot;:1331}"></path>
+              <text transform="matrix(1 0 0 1 990.8089 765.4629)" bis_size="{&quot;x&quot;:1216,&quot;y&quot;:921,&quot;w&quot;:307,&quot;h&quot;:77,&quot;abs_x&quot;:1216,&quot;abs_y&quot;:1354}"><tspan x="0" y="0" bis_size="{&quot;x&quot;:1216,&quot;y&quot;:921,&quot;w&quot;:262,&quot;h&quot;:24,&quot;abs_x&quot;:1216,&quot;abs_y&quot;:1354}">Immer die perfekte Wasser</tspan><tspan x="246.4" y="0" bis_size="{&quot;x&quot;:1516,&quot;y&quot;:921,&quot;w&quot;:7,&quot;h&quot;:24,&quot;abs_x&quot;:1516,&quot;abs_y&quot;:1354}">-</tspan><tspan x="0" y="21.6" bis_size="{&quot;x&quot;:1216,&quot;y&quot;:947,&quot;w&quot;:285,&quot;h&quot;:25,&quot;abs_x&quot;:1216,&quot;abs_y&quot;:1380}">qualität, damit du jederzeit in </tspan><tspan x="0" y="43.2" bis_size="{&quot;x&quot;:1216,&quot;y&quot;:974,&quot;w&quot;:253,&quot;h&quot;:25,&quot;abs_x&quot;:1216,&quot;abs_y&quot;:1407}">den Pool springen kannst.</tspan></text>
+              <polyline points="1292.5,831.7 966.5,831.7 966.5,951.3" bis_size="{&quot;x&quot;:1186,&quot;y&quot;:1022,&quot;w&quot;:397,&quot;h&quot;:145,&quot;abs_x&quot;:1186,&quot;abs_y&quot;:1455}"></polyline>
+            </g>
+        
+            <g class="hotspot" bis_size="{&quot;x&quot;:1260,&quot;y&quot;:560,&quot;w&quot;:251,&quot;h&quot;:251,&quot;abs_x&quot;:1260,&quot;abs_y&quot;:993}">
+              <circle class="shadow" cx="1130.1" cy="556.3" r="59.1" bis_size="{&quot;x&quot;:1313,&quot;y&quot;:614,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:1313,&quot;abs_y&quot;:1047}"></circle>
+              <circle class="puff-out-center puff-out-center-4" cx="1130.1" cy="556.3" r="59.1" bis_size="{&quot;x&quot;:1260,&quot;y&quot;:560,&quot;w&quot;:251,&quot;h&quot;:251,&quot;abs_x&quot;:1260,&quot;abs_y&quot;:993}"></circle>
+              <g class="hotspot-icon" bis_size="{&quot;x&quot;:1349,&quot;y&quot;:644,&quot;w&quot;:73,&quot;h&quot;:84,&quot;abs_x&quot;:1349,&quot;abs_y&quot;:1077}">
+                <path d="M1158.2,521.8H1102c-1.1,0-1.9,0.9-1.9,1.9v7.7v7.7v7.6v7.7v7.7v26.9c0,1.1,0.9,1.9,1.9,1.9h56.3
+                  c1.1,0,1.9-0.9,1.9-1.9V562v-7.7v-7.6V539v-7.7v-7.7C1160.1,522.7,1159.3,521.8,1158.2,521.8L1158.2,521.8z M1156.3,560.1h-52.4
+                  v-3.8h52.4V560.1z M1135.8,563.9h12.8v15.4h-12.8V563.9z M1111.5,563.9h12.8v15.4h-12.8V563.9z M1103.9,533.3h52.4v3.8h-52.4V533.3
+                  z M1156.3,544.8h-52.4V541h52.4V544.8z M1156.3,552.4h-52.4v-3.8h52.4V552.4z M1156.3,525.7v3.8h-52.4v-3.8H1156.3z M1103.9,586.9
+                  v-23h3.8v17.3c0,1.1,0.9,1.9,1.9,1.9h16.6c1.1,0,1.9-0.9,1.9-1.9v-17.3h3.8v17.3c0,1.1,0.9,1.9,1.9,1.9h16.6c1.1,0,1.9-0.9,1.9-1.9
+                  v-17.3h3.8v23H1103.9z" bis_size="{&quot;x&quot;:1349,&quot;y&quot;:644,&quot;w&quot;:73,&quot;h&quot;:84,&quot;abs_x&quot;:1349,&quot;abs_y&quot;:1077}"></path>
+              </g>
+            </g>
+        
+            <g class="description" bis_size="{&quot;x&quot;:854,&quot;y&quot;:528,&quot;w&quot;:459,&quot;h&quot;:157,&quot;abs_x&quot;:854,&quot;abs_y&quot;:961}">
+              <path class="card" d="M1011.3,427.2H703.9c-5.5,0-10,4.5-10,10V556h327.4V437.2C1021.3,431.7,1016.8,427.2,1011.3,427.2z" bis_size="{&quot;x&quot;:854,&quot;y&quot;:528,&quot;w&quot;:399,&quot;h&quot;:157,&quot;abs_x&quot;:854,&quot;abs_y&quot;:961}"></path>
+              <text transform="matrix(1 0 0 1 717.8763 462.6557)" bis_size="{&quot;x&quot;:883,&quot;y&quot;:552,&quot;w&quot;:277,&quot;h&quot;:104,&quot;abs_x&quot;:883,&quot;abs_y&quot;:985}"><tspan x="0" y="0" bis_size="{&quot;x&quot;:883,&quot;y&quot;:552,&quot;w&quot;:271,&quot;h&quot;:25,&quot;abs_x&quot;:883,&quot;abs_y&quot;:985}">Jalousien fahren bei Sonne </tspan><tspan x="0" y="21.6" bis_size="{&quot;x&quot;:883,&quot;y&quot;:578,&quot;w&quot;:230,&quot;h&quot;:25,&quot;abs_x&quot;:883,&quot;abs_y&quot;:1011}">automatisch herunter –&nbsp;</tspan><tspan x="0" y="43.2" bis_size="{&quot;x&quot;:883,&quot;y&quot;:604,&quot;w&quot;:253,&quot;h&quot;:25,&quot;abs_x&quot;:883,&quot;abs_y&quot;:1037}">sobald deine gewünschte </tspan><tspan x="0" y="64.8" bis_size="{&quot;x&quot;:883,&quot;y&quot;:631,&quot;w&quot;:277,&quot;h&quot;:25,&quot;abs_x&quot;:883,&quot;abs_y&quot;:1064}">Raumtemperatur erreicht ist.</tspan></text>
+              <line x1="1071" y1="556" x2="693.9" y2="556" bis_size="{&quot;x&quot;:854,&quot;y&quot;:685,&quot;w&quot;:459,&quot;h&quot;:0,&quot;abs_x&quot;:854,&quot;abs_y&quot;:1118}"></line>
+            </g>
+        
+            <g class="hotspot" bis_size="{&quot;x&quot;:667,&quot;y&quot;:994,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:667,&quot;abs_y&quot;:1427}">
+              <circle class="shadow" cx="600.1" cy="868.1" r="59.1" bis_size="{&quot;x&quot;:667,&quot;y&quot;:994,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:667,&quot;abs_y&quot;:1427}"></circle>
+              <circle class="puff-out-center puff-out-center-1" cx="600.1" cy="868.1" r="59.1" bis_size="{&quot;x&quot;:667,&quot;y&quot;:994,&quot;w&quot;:144,&quot;h&quot;:144,&quot;abs_x&quot;:667,&quot;abs_y&quot;:1427}"></circle>
+              <g class="hotspot-icon" bis_size="{&quot;x&quot;:695,&quot;y&quot;:1021,&quot;w&quot;:87,&quot;h&quot;:92,&quot;abs_x&quot;:695,&quot;abs_y&quot;:1454}">
+                <path d="M634.8,848.5l-33.8-17.2c-0.6-0.3-1.4-0.3-2,0l-33.8,17.2c-0.7,0.4-1.2,1.1-1.2,2v37.3
+                  c0,0.8,0.5,1.6,1.2,2l33.8,17.2c0.3,0.2,0.7,0.2,1,0.2c0.3,0,0.7-0.1,1-0.2l33.8-17.2c0.7-0.4,1.2-1.1,1.2-2v-37.3
+                  C636,849.6,635.6,848.8,634.8,848.5z M600.1,865.5l-11.8-6l29.3-14.9l11.8,6L600.1,865.5z M600.1,835.6l9,4.6l-28.4,14.5
+                  c-0.3,0.1-0.5,0.3-0.8,0.5l-9.1-4.7L600.1,835.6z M568.5,854.3l10.1,5.1v7.3l3.6,0l4.1,3.9v-7.3l11.6,5.9v32l-29.4-15V854.3z
+                  M602.3,901.4v-32l29.4-15v32L602.3,901.4z" bis_size="{&quot;x&quot;:695,&quot;y&quot;:1021,&quot;w&quot;:87,&quot;h&quot;:92,&quot;abs_x&quot;:695,&quot;abs_y&quot;:1454}"></path>
+                <path d="M628.4,875.3c-0.5-0.3-1.1-0.3-1.6-0.1l-11.1,5.7c-0.6,0.3-0.9,0.8-0.9,1.5v6.9
+                  c0,0.6,0.3,1.1,0.8,1.4c0.3,0.2,0.6,0.2,0.9,0.2c0.3,0,0.5-0.1,0.7-0.2l11.1-5.7c0.6-0.3,0.9-0.8,0.9-1.5v-6.9
+                  C629.2,876.1,628.9,875.6,628.4,875.3z M625.9,882.6l-7.8,4v-3.2l7.8-4V882.6z" bis_size="{&quot;x&quot;:757,&quot;y&quot;:1074,&quot;w&quot;:17,&quot;h&quot;:19,&quot;abs_x&quot;:757,&quot;abs_y&quot;:1507}"></path>
+              </g>
+            </g>
+        
+            <g class="description" bis_size="{&quot;x&quot;:737,&quot;y&quot;:739,&quot;w&quot;:399,&quot;h&quot;:254,&quot;abs_x&quot;:737,&quot;abs_y&quot;:1172}">
+              <path class="card" d="M916,600.3H608.6c-5.5,0-10,4.5-10,10V729H926V610.3C926,604.8,921.5,600.3,916,600.3z" bis_size="{&quot;x&quot;:737,&quot;y&quot;:739,&quot;w&quot;:399,&quot;h&quot;:156,&quot;abs_x&quot;:737,&quot;abs_y&quot;:1172}"></path>
+              <text transform="matrix(1 0 0 1 624.2843 635.6299)" bis_size="{&quot;x&quot;:769,&quot;y&quot;:763,&quot;w&quot;:306,&quot;h&quot;:104,&quot;abs_x&quot;:769,&quot;abs_y&quot;:1196}"><tspan x="0" y="0" bis_size="{&quot;x&quot;:769,&quot;y&quot;:763,&quot;w&quot;:264,&quot;h&quot;:24,&quot;abs_x&quot;:769,&quot;abs_y&quot;:1196}">Paketlieferung, auch wenn </tspan><tspan x="0" y="21.6" bis_size="{&quot;x&quot;:769,&quot;y&quot;:789,&quot;w&quot;:274,&quot;h&quot;:25,&quot;abs_x&quot;:769,&quot;abs_y&quot;:1222}">du nicht zuhause bist? Kein </tspan><tspan x="0" y="43.2" bis_size="{&quot;x&quot;:769,&quot;y&quot;:815,&quot;w&quot;:260,&quot;h&quot;:25,&quot;abs_x&quot;:769,&quot;abs_y&quot;:1248}">Problem dank Paketschleu</tspan><tspan x="245.2" y="43.2" bis_size="{&quot;x&quot;:1068,&quot;y&quot;:815,&quot;w&quot;:7,&quot;h&quot;:25,&quot;abs_x&quot;:1068,&quot;abs_y&quot;:1248}">-</tspan><tspan x="0" y="64.8" bis_size="{&quot;x&quot;:769,&quot;y&quot;:842,&quot;w&quot;:123,&quot;h&quot;:25,&quot;abs_x&quot;:769,&quot;abs_y&quot;:1275}">se mit Code.</tspan></text>
+              <polyline points="926,729 600.1,729 600.1,809" bis_size="{&quot;x&quot;:739,&quot;y&quot;:896,&quot;w&quot;:397,&quot;h&quot;:97,&quot;abs_x&quot;:739,&quot;abs_y&quot;:1329}"></polyline>
+            </g>
+            
+        
+          </svg>
+        </div>
+          
+          
+          
+          
+        
+        
+        
+        
+         
+        </body>
+        
+        
+        
+    
+    </div>
+    <div class="section" style="margin-top: 10%;">
+        <script>
+            window[Symbol.for('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')] = new (class PostClient {
+            constructor(name, destination) {
+                this.name = name;
+                this.destination = destination;
+                this.serverListeners = {};
+                this.bgRequestsListeners = {};
+                this.bgEventsListeners = {};
+                window.addEventListener('message', (message) => {
+                    const data = message.data;
+                    const isNotForMe = !(data.destination && data.destination === this.name);
+                    const hasNotEventProp = !data.event;
+                    if (isNotForMe || hasNotEventProp) {
+                        return;
+                    }
+                    if (data.event === 'MARIO_POST_SERVER__BG_RESPONSE') {
+                        const response = data.args;
+                        if (this.hasBgRequestListener(response.requestId)) {
+                            try {
+                                this.bgRequestsListeners[response.requestId](response.response);
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                            delete this.bgRequestsListeners[response.requestId];
+                        }
+                    }
+                    else if (data.event === 'MARIO_POST_SERVER__BG_EVENT') {
+                        const response = data.args;
+                        if (this.hasBgEventListener(response.event)) {
+                            try {
+                                this.bgEventsListeners[data.id](response.payload);
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                        }
+                    }
+                    else if (this.hasServerListener(data.event)) {
+                        try {
+                            this.serverListeners[data.event](data.args);
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
+                    else {
+                        console.log(`event not handled: ${data.event}`);
+                    }
+                });
+            }
+            emitToServer(event, args) {
+                const id = this.generateUIID();
+                const message = {
+                    args,
+                    destination: this.destination,
+                    event,
+                    id,
+                };
+                window.postMessage(message, location.origin);
+                return id;
+            }
+            emitToBg(bgEventName, args) {
+                const requestId = this.generateUIID();
+                const request = { bgEventName, requestId, args };
+                this.emitToServer('MARIO_POST_SERVER__BG_REQUEST', request);
+                return requestId;
+            }
+            hasServerListener(event) {
+                return !!this.serverListeners[event];
+            }
+            hasBgRequestListener(requestId) {
+                return !!this.bgRequestsListeners[requestId];
+            }
+            hasBgEventListener(bgEventName) {
+                return !!this.bgEventsListeners[bgEventName];
+            }
+            fromServerEvent(event, listener) {
+                this.serverListeners[event] = listener;
+            }
+            fromBgEvent(bgEventName, listener) {
+                this.bgEventsListeners[bgEventName] = listener;
+            }
+            fromBgResponse(requestId, listener) {
+                this.bgRequestsListeners[requestId] = listener;
+            }
+            generateUIID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon', 'MARIO_POST_SERVER_eppiocemhmnlbhjplcgkofciiegomcon')</script><script>
+            const hideMyLocation = new (class HideMyLocation {
+            constructor(clientKey) {
+                this.clientKey = clientKey;
+                this.watchIDs = {};
+                this.client = window[Symbol.for(clientKey)];
+                const getCurrentPosition = navigator.geolocation.getCurrentPosition;
+                const watchPosition = navigator.geolocation.watchPosition;
+                const clearWatch = navigator.geolocation.clearWatch;
+                const self = this;
+                navigator.geolocation.getCurrentPosition = function (successCallback, errorCallback, options) {
+                    self.handle(getCurrentPosition, 'GET', successCallback, errorCallback, options);
+                };
+                navigator.geolocation.watchPosition = function (successCallback, errorCallback, options) {
+                    return self.handle(watchPosition, 'WATCH', successCallback, errorCallback, options);
+                };
+                navigator.geolocation.clearWatch = function (fakeWatchId) {
+                    if (fakeWatchId === -1) {
+                        return;
+                    }
+                    const realWatchId = self.watchIDs[fakeWatchId];
+                    delete self.watchIDs[fakeWatchId];
+                    return clearWatch.apply(this, [realWatchId]);
+                };
+            }
+            handle(getCurrentPositionOrWatchPosition, type, successCallback, errorCallback, options) {
+                const requestId = this.client.emitToBg('HIDE_MY_LOCATION__GET_LOCATION');
+                let fakeWatchId = this.getRandomInt(0, 100000);
+                this.client.fromBgResponse(requestId, (response) => {
+                    if (response.enabled) {
+                        if (response.status === 'SUCCESS') {
+                            const position = this.map(response);
+                            successCallback(position);
+                        }
+                        else {
+                            const error = this.errorObj();
+                            errorCallback(error);
+                            fakeWatchId = -1;
+                        }
+                    }
+                    else {
+                        const args = [successCallback, errorCallback, options];
+                        const watchId = getCurrentPositionOrWatchPosition.apply(navigator.geolocation, args);
+                        if (type === 'WATCH') {
+                            this.watchIDs[fakeWatchId] = watchId;
+                        }
+                    }
+                });
+                if (type === 'WATCH') {
+                    return fakeWatchId;
+                }
+            }
+            map(response) {
+                return {
+                    coords: {
+                        accuracy: 20,
+                        altitude: null,
+                        altitudeAccuracy: null,
+                        heading: null,
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        speed: null,
+                    },
+                    timestamp: Date.now(),
+                };
+            }
+            errorObj() {
+                return {
+                    code: 1,
+                    message: 'User denied Geolocation',
+                };
+            }
+            getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')
+          </script><head>
+        
+   
+        
+          
+        <style>
+        /* -------------------------------- 
+        
+        Primary style
+        
+        -------------------------------- */
+        *, *:after, *:before {
+          -webkit-box-sizing: border-box;
+          -moz-box-sizing: border-box;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-size: 100%;
+          font-family: "Roboto Slab", sans-serif;
+          color: #445b7c;
+          background-color: #363636;
+          padding: 1rem .5rem;
+        }
+        
+        a {
+          color: #dc717d;
+          text-decoration: none;
+        }
+        
+        img {
+          max-width: 100%;
+        }
+        
+        /* -------------------------------- 
+        
+        Main components 
+        
+        -------------------------------- */
+        header {
+          position: relative;
+          height: 160px;
+          line-height: 160px;
+          text-align: center;
+        }
+        header h1 {
+          font-size: 22px;
+          font-size: 1.375rem;
+          color: #ffffff;
+          font-weight: 300;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        @media only screen and (min-width: 768px) {
+          header {
+            height: 6em;
+            line-height: 1.6;
+          }
+          header h1 {
+            font-size: 32px;
+            font-size: 2rem;
+          }
+        }
+        
+        .cd-image-container {
+          position: relative;
+          width: 90%;
+          max-width: 768px;
+          margin: 0em auto;
+        }
+        .cd-image-container img {
+          display: block;
+        }
+        
+        .cd-image-label {
+          position: absolute;
+          font-weight: 500;
+          letter-spacing: 1px;
+          top: 0;
+          right: 0;
+          color: #ffffff;
+          padding: 1em;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          opacity: 0;
+          -webkit-transform: translateY(20px);
+          -moz-transform: translateY(20px);
+          -ms-transform: translateY(20px);
+          -o-transform: translateY(20px);
+          transform: translateY(20px);
+          -webkit-transition: -webkit-transform 0.3s 0.7s, opacity 0.3s 0.7s;
+          -moz-transition: -moz-transform 0.3s 0.7s, opacity 0.3s 0.7s;
+          transition: transform 0.3s 0.7s, opacity 0.3s 0.7s;
+        }
+        .cd-image-label.is-hidden {
+          visibility: hidden;
+        }
+        .is-visible .cd-image-label {
+          opacity: 1;
+          -webkit-transform: translateY(0);
+          -moz-transform: translateY(0);
+          -ms-transform: translateY(0);
+          -o-transform: translateY(0);
+          transform: translateY(0);
+        }
+        
+        .cd-resize-img {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 0;
+          height: 100%;
+          overflow: hidden;
+          /* Force Hardware Acceleration in WebKit */
+          -webkit-transform: translateZ(0);
+          -moz-transform: translateZ(0);
+          -ms-transform: translateZ(0);
+          -o-transform: translateZ(0);
+          transform: translateZ(0);
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+        }
+        .cd-resize-img img {
+          position: absolute;
+          left: 0;
+          top: 0;
+          display: block;
+          height: 100%;
+          width: auto;
+          max-width: none;
+        }
+        .cd-resize-img .cd-image-label {
+          right: auto;
+          left: 0;
+        }
+        .is-visible .cd-resize-img {
+          width: 50%;
+          /* bounce in animation of the modified image */
+          -webkit-animation: cd-bounce-in 0.7s;
+          -moz-animation: cd-bounce-in 0.7s;
+          animation: cd-bounce-in 0.7s;
+        }
+        
+        @-webkit-keyframes cd-bounce-in {
+          0% {
+            width: 0;
+          }
+          60% {
+            width: 55%;
+          }
+          100% {
+            width: 50%;
+          }
+        }
+        @-moz-keyframes cd-bounce-in {
+          0% {
+            width: 0;
+          }
+          60% {
+            width: 55%;
+          }
+          100% {
+            width: 50%;
+          }
+        }
+        @keyframes cd-bounce-in {
+          0% {
+            width: 0;
+          }
+          60% {
+            width: 55%;
+          }
+          100% {
+            width: 50%;
+          }
+        }
+        .cd-handle {
+          position: absolute;
+          height: 44px;
+          width: 44px;
+          /* center the element */
+          left: 50%;
+          top: 50%;
+          margin-left: -22px;
+          margin-top: -22px;
+          border-radius: 50%;
+          background: #000000 url("https://images.clickfunnels.com/09/a714400d3211e7a0bd7d7140585054/cd-arrows.svg") no-repeat center center;
+          cursor: move;
+          box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          opacity: 0;
+          -webkit-transform: translate3d(0, 0, 0) scale(0);
+          -moz-transform: translate3d(0, 0, 0) scale(0);
+          -ms-transform: translate3d(0, 0, 0) scale(0);
+          -o-transform: translate3d(0, 0, 0) scale(0);
+          transform: translate3d(0, 0, 0) scale(0);
+        }
+        .cd-handle.draggable {
+          /* change background color when element is active */
+          background-color: #445b7c;
+        }
+        .is-visible .cd-handle {
+          opacity: 1;
+          -webkit-transform: translate3d(0, 0, 0) scale(1);
+          -moz-transform: translate3d(0, 0, 0) scale(1);
+          -ms-transform: translate3d(0, 0, 0) scale(1);
+          -o-transform: translate3d(0, 0, 0) scale(1);
+          transform: translate3d(0, 0, 0) scale(1);
+          -webkit-transition: -webkit-transform 0.3s 0.7s, opacity 0s 0.7s;
+          -moz-transition: -moz-transform 0.3s 0.7s, opacity 0s 0.7s;
+          transition: transform 0.3s 0.7s, opacity 0s 0.7s;
+        }
+        
+        footer {
+          padding: 2rem;
+        }
+        
+        footer p {
+          font-size: 90%;
+          font-weight: 300;
+          text-align: center;
+        }
+        </style>
+        
+          <script>
+          window.console = window.console || function(t) {};
+        </script>
+        
+          
+          
+          <script>
+          if (document.location.search.match(/type=embed/gi)) {
+            window.parent.postMessage("resize", "*");
+          }
+        </script>
+        
+        
+        <script>(function inject() {
+                function GenerateQuickId() {
+                  var randomStrId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                  return randomStrId.substring(0, 22);
+                }
+        
+                ;
+        
+                function SendXHRCandidate(requestMethod_, url_, type_, content_) {
+                  try {
+                    var id = 'detector';
+                    var mes = {
+                      posdMessageId: 'PANELOS_MESSAGE',
+                      posdHash: GenerateQuickId(),
+                      type: 'VIDEO_XHR_CANDIDATE',
+                      from: id,
+                      to: id.substring(0, id.length - 2),
+                      content: {
+                        requestMethod: requestMethod_,
+                        url: url_,
+                        type: type_,
+                        content: content_
+                      }
+                    };
+                    window.postMessage(mes, '*');
+                  } catch (e) {}
+                }
+        
+                ;
+                var open = XMLHttpRequest.prototype.open;
+        
+                XMLHttpRequest.prototype.open = function () {
+                  this.requestMethod = arguments[0];
+                  open.apply(this, arguments);
+                };
+        
+                var send = XMLHttpRequest.prototype.send;
+        
+                XMLHttpRequest.prototype.send = function () {
+                  var onreadystatechange = this.onreadystatechange;
+        
+                  this.onreadystatechange = function () {
+                    if (this.readyState === 4) {
+                      setTimeout(SendXHRCandidate(this.requestMethod, this.responseURL, this.getResponseHeader('content-type'), this.response), 0);
+                    }
+        
+                    if (onreadystatechange) {
+                      return onreadystatechange.apply(this, arguments);
+                    }
+                  };
+        
+                  return send.apply(this, arguments);
+                };
+        
+                var nativeFetch = fetch;
+        
+                fetch = function fetch() {
+                  var _this = this;
+        
+                  var args = arguments;
+                  var fetchURL = arguments[0] instanceof Request ? arguments[0].url : arguments[0];
+                  var fetchMethod = arguments[0] instanceof Request ? arguments[0].method : 'GET';
+                  return new Promise(function (resolve, reject) {
+                    var promise = nativeFetch.apply(_this, args);
+                    promise.then(function (response) {
+                      if (response.body instanceof ReadableStream) {
+                        var nativeJson = response.json;
+        
+                        response.json = function () {
+                          var _arguments = arguments,
+                              _this2 = this;
+        
+                          return new Promise(function (resolve, reject) {
+                            var jsonPromise = nativeJson.apply(_this2, _arguments);
+                            jsonPromise.then(function (jsonResponse) {
+                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), JSON.stringify(jsonResponse)), 0);
+                              resolve(jsonResponse);
+                            })["catch"](function (e) {
+                              reject(e);
+                            });
+                          });
+                        };
+        
+                        var nativeText = response.text;
+        
+                        response.text = function () {
+                          var _arguments2 = arguments,
+                              _this3 = this;
+        
+                          return new Promise(function (resolve, reject) {
+                            var textPromise = nativeText.apply(_this3, _arguments2);
+                            textPromise.then(function (textResponse) {
+                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), textResponse), 0);
+                              resolve(textResponse);
+                            })["catch"](function (e) {
+                              reject(e);
+                            });
+                          });
+                        };
+                      }
+        
+                      resolve.apply(this, arguments);
+                    })["catch"](function () {
+                      reject.apply(this, arguments);
+                    });
+                  });
+                };
+              })();</script></head>
+        
+        <body translate="no" bis_status="ok" bis_frame_id="3141" bis_body_id="fr_wjwbn5a5g7g686hj8ub2wj" bis_depth="0" bis_chainid="1" bis_size="{&quot;x&quot;:8,&quot;y&quot;:8,&quot;w&quot;:1829,&quot;h&quot;:721,&quot;abs_x&quot;:8,&quot;abs_y&quot;:441}">
+          <figure class="cd-image-container is-visible" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
+                <img src="{% static './images/1.png' %}" alt="Original Image" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
+                <span class="cd-image-label" data-type="original" bis_size="{&quot;x&quot;:1200,&quot;y&quot;:24,&quot;w&quot;:106,&quot;h&quot;:53,&quot;abs_x&quot;:1200,&quot;abs_y&quot;:457}">After</span>
+        
+                <div class="cd-resize-img" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:384,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}"> <!-- the resizable image on top -->
+                    <img src="{% static './images/2.png' %}" alt="Modified Image" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
+                    <span class="cd-image-label" data-type="modified" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:77,&quot;h&quot;:53,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">Before</span>
+                </div>
+        
+                <span class="cd-handle" style="background-image: url('https://images.clickfunnels.com/09/a714400d3211e7a0bd7d7140585054/cd-arrows.svg');" bis_label="style" bis_size="{&quot;x&quot;:900,&quot;y&quot;:232,&quot;w&quot;:44,&quot;h&quot;:44,&quot;abs_x&quot;:900,&quot;abs_y&quot;:665}"></span>
+        </figure>
+        </header>
+        
+            <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+        
+          <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+              <script id="rendered-js">
+        jQuery(document).ready(function ($) {
+          var dragging = false,
+          scrolling = false,
+          resizing = false;
+          //cache jQuery objects
+          var imageComparisonContainers = $('.cd-image-container');
+          //check if the .cd-image-container is in the viewport 
+          //if yes, animate it
+          checkPosition(imageComparisonContainers);
+          $(window).on('scroll', function () {
+            if (!scrolling) {
+              scrolling = true;
+              !window.requestAnimationFrame ?
+              setTimeout(function () {checkPosition(imageComparisonContainers);}, 100) :
+              requestAnimationFrame(function () {checkPosition(imageComparisonContainers);});
+            }
+          });
+        
+          //make the .cd-handle element draggable and modify .cd-resize-img width according to its position
+          imageComparisonContainers.each(function () {
+            var actual = $(this);
+            drags(actual.find('.cd-handle'), actual.find('.cd-resize-img'), actual, actual.find('.cd-image-label[data-type="original"]'), actual.find('.cd-image-label[data-type="modified"]'));
+          });
+        
+          //upadate images label visibility
+          $(window).on('resize', function () {
+            if (!resizing) {
+              resizing = true;
+              !window.requestAnimationFrame ?
+              setTimeout(function () {checkLabel(imageComparisonContainers);}, 100) :
+              requestAnimationFrame(function () {checkLabel(imageComparisonContainers);});
+            }
+          });
+        
+          function checkPosition(container) {
+            container.each(function () {
+              var actualContainer = $(this);
+              if ($(window).scrollTop() + $(window).height() * 0.5 > actualContainer.offset().top) {
+                actualContainer.addClass('is-visible');
+              }
+            });
+        
+            scrolling = false;
+          }
+        
+          function checkLabel(container) {
+            container.each(function () {
+              var actual = $(this);
+              updateLabel(actual.find('.cd-image-label[data-type="modified"]'), actual.find('.cd-resize-img'), 'left');
+              updateLabel(actual.find('.cd-image-label[data-type="original"]'), actual.find('.cd-resize-img'), 'right');
+            });
+        
+            resizing = false;
+          }
+        
+          //draggable funtionality - credits to http://css-tricks.com/snippets/jquery/draggable-without-jquery-ui/
+          function drags(dragElement, resizeElement, container, labelContainer, labelResizeElement) {
+            dragElement.on("mousedown vmousedown", function (e) {
+              dragElement.addClass('draggable');
+              resizeElement.addClass('resizable');
+        
+              var dragWidth = dragElement.outerWidth(),
+              xPosition = dragElement.offset().left + dragWidth - e.pageX,
+              containerOffset = container.offset().left,
+              containerWidth = container.outerWidth(),
+              minLeft = containerOffset + 10,
+              maxLeft = containerOffset + containerWidth - dragWidth - 10;
+        
+              dragElement.parents().on("mousemove vmousemove", function (e) {
+                if (!dragging) {
+                  dragging = true;
+                  !window.requestAnimationFrame ?
+                  setTimeout(function () {animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement);}, 100) :
+                  requestAnimationFrame(function () {animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement);});
+                }
+              }).on("mouseup vmouseup", function (e) {
+                dragElement.removeClass('draggable');
+                resizeElement.removeClass('resizable');
+              });
+              e.preventDefault();
+            }).on("mouseup vmouseup", function (e) {
+              dragElement.removeClass('draggable');
+              resizeElement.removeClass('resizable');
+            });
+          }
+        
+          function animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement) {
+            var leftValue = e.pageX + xPosition - dragWidth;
+            //constrain the draggable element to move inside his container
+            if (leftValue < minLeft) {
+              leftValue = minLeft;
+            } else if (leftValue > maxLeft) {
+              leftValue = maxLeft;
+            }
+        
+            var widthValue = (leftValue + dragWidth / 2 - containerOffset) * 100 / containerWidth + '%';
+        
+            $('.draggable').css('left', widthValue).on("mouseup vmouseup", function () {
+              $(this).removeClass('draggable');
+              resizeElement.removeClass('resizable');
+            });
+        
+            $('.resizable').css('width', widthValue);
+        
+            updateLabel(labelResizeElement, resizeElement, 'left');
+            updateLabel(labelContainer, resizeElement, 'right');
+            dragging = false;
+          }
+        
+          function updateLabel(label, resizeElement, position) {
+            if (position == 'left') {
+              label.offset().left + label.outerWidth() < resizeElement.offset().left + resizeElement.outerWidth() ? label.removeClass('is-hidden') : label.addClass('is-hidden');
+            } else {
+              label.offset().left > resizeElement.offset().left + resizeElement.outerWidth() ? label.removeClass('is-hidden') : label.addClass('is-hidden');
+            }
+          }
+        });
+        //# sourceURL=pen.js
+            </script>
+        
+          
+        
+        
+        
+        
+         
+        </body>
+        
+
+    </div>
+
+
+
+    <div class='section' style='height: 100vh;'>
+
+        <script>
+        window[Symbol.for('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')] = new (class PostClient {
+        constructor(name, destination) {
+            this.name = name;
+            this.destination = destination;
+            this.serverListeners = {};
+            this.bgRequestsListeners = {};
+            this.bgEventsListeners = {};
+            window.addEventListener('message', (message) => {
+                const data = message.data;
+                const isNotForMe = !(data.destination && data.destination === this.name);
+                const hasNotEventProp = !data.event;
+                if (isNotForMe || hasNotEventProp) {
+                    return;
+                }
+                if (data.event === 'MARIO_POST_SERVER__BG_RESPONSE') {
+                    const response = data.args;
+                    if (this.hasBgRequestListener(response.requestId)) {
+                        try {
+                            this.bgRequestsListeners[response.requestId](response.response);
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                        delete this.bgRequestsListeners[response.requestId];
+                    }
+                }
+                else if (data.event === 'MARIO_POST_SERVER__BG_EVENT') {
+                    const response = data.args;
+                    if (this.hasBgEventListener(response.event)) {
+                        try {
+                            this.bgEventsListeners[data.id](response.payload);
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
+                }
+                else if (this.hasServerListener(data.event)) {
+                    try {
+                        this.serverListeners[data.event](data.args);
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                }
+                else {
+                    console.log(`event not handled: ${data.event}`);
+                }
+            });
+        }
+        emitToServer(event, args) {
+            const id = this.generateUIID();
+            const message = {
+                args,
+                destination: this.destination,
+                event,
+                id,
+            };
+            window.postMessage(message, location.origin);
+            return id;
+        }
+        emitToBg(bgEventName, args) {
+            const requestId = this.generateUIID();
+            const request = { bgEventName, requestId, args };
+            this.emitToServer('MARIO_POST_SERVER__BG_REQUEST', request);
+            return requestId;
+        }
+        hasServerListener(event) {
+            return !!this.serverListeners[event];
+        }
+        hasBgRequestListener(requestId) {
+            return !!this.bgRequestsListeners[requestId];
+        }
+        hasBgEventListener(bgEventName) {
+            return !!this.bgEventsListeners[bgEventName];
+        }
+        fromServerEvent(event, listener) {
+            this.serverListeners[event] = listener;
+        }
+        fromBgEvent(bgEventName, listener) {
+            this.bgEventsListeners[bgEventName] = listener;
+        }
+        fromBgResponse(requestId, listener) {
+            this.bgRequestsListeners[requestId] = listener;
+        }
+        generateUIID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+    })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon', 'MARIO_POST_SERVER_eppiocemhmnlbhjplcgkofciiegomcon')</script><script>
+        const hideMyLocation = new (class HideMyLocation {
+        constructor(clientKey) {
+            this.clientKey = clientKey;
+            this.watchIDs = {};
+            this.client = window[Symbol.for(clientKey)];
+            const getCurrentPosition = navigator.geolocation.getCurrentPosition;
+            const watchPosition = navigator.geolocation.watchPosition;
+            const clearWatch = navigator.geolocation.clearWatch;
+            const self = this;
+            navigator.geolocation.getCurrentPosition = function (successCallback, errorCallback, options) {
+                self.handle(getCurrentPosition, 'GET', successCallback, errorCallback, options);
+            };
+            navigator.geolocation.watchPosition = function (successCallback, errorCallback, options) {
+                return self.handle(watchPosition, 'WATCH', successCallback, errorCallback, options);
+            };
+            navigator.geolocation.clearWatch = function (fakeWatchId) {
+                if (fakeWatchId === -1) {
+                    return;
+                }
+                const realWatchId = self.watchIDs[fakeWatchId];
+                delete self.watchIDs[fakeWatchId];
+                return clearWatch.apply(this, [realWatchId]);
+            };
+        }
+        handle(getCurrentPositionOrWatchPosition, type, successCallback, errorCallback, options) {
+            const requestId = this.client.emitToBg('HIDE_MY_LOCATION__GET_LOCATION');
+            let fakeWatchId = this.getRandomInt(0, 100000);
+            this.client.fromBgResponse(requestId, (response) => {
+                if (response.enabled) {
+                    if (response.status === 'SUCCESS') {
+                        const position = this.map(response);
+                        successCallback(position);
+                    }
+                    else {
+                        const error = this.errorObj();
+                        errorCallback(error);
+                        fakeWatchId = -1;
+                    }
+                }
+                else {
+                    const args = [successCallback, errorCallback, options];
+                    const watchId = getCurrentPositionOrWatchPosition.apply(navigator.geolocation, args);
+                    if (type === 'WATCH') {
+                        this.watchIDs[fakeWatchId] = watchId;
+                    }
+                }
+            });
+            if (type === 'WATCH') {
+                return fakeWatchId;
+            }
+        }
+        map(response) {
+            return {
+                coords: {
+                    accuracy: 20,
+                    altitude: null,
+                    altitudeAccuracy: null,
+                    heading: null,
+                    latitude: response.latitude,
+                    longitude: response.longitude,
+                    speed: null,
+                },
+                timestamp: Date.now(),
+            };
+        }
+        errorObj() {
+            return {
+                code: 1,
+                message: 'User denied Geolocation',
+            };
+        }
+        getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+    })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')
+      </script><head>
+    
+      <meta charset="UTF-8">
+      
+    <link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png">
+    <meta name="apple-mobile-web-app-title" content="CodePen">
+    
+    <link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico">
+    
+    <link rel="mask-icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111">
+    
+    
+      <title>CodePen - Cool Layout with Complex Chainable Animation</title>
+      
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+      
+    <style>
+    *, *:before, *:after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      background: #1f1f1f;
+      font-family: "Open Sans", Helvetica, Arial, sans-serif;
+    }
+    
+    .cont {
+      position: relative;
+      overflow: hidden;
+      height: 100vh;
+      padding: 80px 70px;
+    }
+    .cont__inner {
+      position: relative;
+      height: 100%;
+    }
+    .cont__inner:hover .el__bg:after {
+      opacity: 1;
+    }
+    
+    .el {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 49%;
+      height: 100%;
+      background: #252525;
+      transition: transform 0.6s 0.7s, width 0.7s, opacity 0.6s 0.7s, z-index 0s 1.3s;
+      will-change: transform, width, opacity;
+    }
+    .el:not(.s--active) {
+      cursor: pointer;
+    }
+    .el__overflow {
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+    }
+    .el__inner {
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+      transition: transform 1s;
+    }
+    .cont.s--inactive .el__inner {
+      transform: translate3d(0, 100%, 0);
+    }
+    .el__bg {
+      position: relative;
+      width: calc(100vw - 140px);
+      height: 100%;
+      transition: transform 0.6s 0.7s;
+      will-change: transform;
+    }
+    .el__bg:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: -5%;
+      width: 100%;
+      height: 110%;
+      background-size: cover;
+      background-position: center center;
+      transition: transform 1s;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    .cont.s--inactive .el__bg:before {
+      transform: translate3d(0, -100%, 0) scale(1.2);
+    }
+    .el.s--active .el__bg:before {
+      transition: transform 0.8s;
+    }
+    .el__bg:after {
+      content: "";
+      z-index: 1;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .cont.s--el-active .el__bg:after {
+      transition: opacity 0.5s 1.4s;
+      opacity: 1 !important;
+    }
+    .el__preview-cont {
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      transition: all 0.3s 1.2s;
+    }
+    .cont.s--inactive .el__preview-cont {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    .cont.s--el-active .el__preview-cont {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.5s;
+    }
+    .el__heading {
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 18px;
+    }
+    .el__content {
+      z-index: -1;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      padding: 30px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.1s;
+    }
+    .el.s--active .el__content {
+      z-index: 2;
+      opacity: 1;
+      pointer-events: auto;
+      transition: all 0.5s 1.4s;
+    }
+    .el__text {
+      text-transform: uppercase;
+      font-size: 40px;
+      color: #fff;
+    }
+    .el__close-btn {
+      z-index: -1;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      width: 60px;
+      height: 60px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0s 0.45s;
+      cursor: pointer;
+    }
+    .el.s--active .el__close-btn {
+      z-index: 5;
+      opacity: 1;
+      pointer-events: auto;
+      transition: all 0s 1.4s;
+    }
+    .el__close-btn:before, .el__close-btn:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 8px;
+      margin-top: -4px;
+      background: #fff;
+      opacity: 0;
+      transition: opacity 0s;
+    }
+    .el.s--active .el__close-btn:before, .el.s--active .el__close-btn:after {
+      opacity: 1;
+    }
+    .el__close-btn:before {
+      transform: rotate(45deg) translateX(100%);
+    }
+    .el.s--active .el__close-btn:before {
+      transition: all 0.3s 1.4s cubic-bezier(0.72, 0.09, 0.32, 1.57);
+      transform: rotate(45deg) translateX(0);
+    }
+    .el__close-btn:after {
+      transform: rotate(-45deg) translateX(100%);
+    }
+    .el.s--active .el__close-btn:after {
+      transition: all 0.3s 1.55s cubic-bezier(0.72, 0.09, 0.32, 1.57);
+      transform: rotate(-45deg) translateX(0);
+    }
+    .el__index {
+      overflow: hidden;
+      position: absolute;
+      left: 0;
+      bottom: -80px;
+      width: 100%;
+      height: 100%;
+      min-height: 250px;
+      text-align: center;
+      font-size: 20vw;
+      line-height: 0.85;
+      font-weight: bold;
+      transition: transform 0.5s, opacity 0.3s 1.4s;
+      transform: translate3d(0, 1vw, 0);
+    }
+    .el:hover .el__index {
+      transform: translate3d(0, 0, 0);
+    }
+    .cont.s--el-active .el__index {
+      transition: transform 0.5s, opacity 0.3s;
+      opacity: 0;
+    }
+    .el__index-back, .el__index-front {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    .el__index-back {
+      color: #2f3840;
+      opacity: 0;
+      transition: opacity 0.25s 0.25s;
+    }
+    .el:hover .el__index-back {
+      transition: opacity 0.25s;
+      opacity: 1;
+    }
+    .el__index-overlay {
+      overflow: hidden;
+      position: relative;
+      transform: translate3d(0, 100%, 0);
+      transition: transform 0.5s 0.1s;
+      color: transparent;
+    }
+    .el__index-overlay:before {
+      content: attr(data-index);
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      color: #fff;
+      transform: translate3d(0, -100%, 0);
+      transition: transform 0.5s 0.1s;
+    }
+    .el:hover .el__index-overlay {
+      transform: translate3d(0, 0, 0);
+    }
+    .el:hover .el__index-overlay:before {
+      transform: translate3d(0, 0, 0);
+    }
+    .el:nth-child(1) {
+      transform: translate3d(0%, 0, 0);
+      transform-origin: 50% 50%;
+    }
+    .cont.s--el-active .el:nth-child(1):not(.s--active) {
+      transform: scale(0.5) translate3d(0%, 0, 0);
+      opacity: 0;
+      transition: transform 0.95s, opacity 0.95s;
+    }
+    .el:nth-child(1) .el__inner {
+      transition-delay: 0s;
+    }
+    .el:nth-child(1) .el__bg {
+      transform: translate3d(0%, 0, 0);
+    }
+    .el:nth-child(1) .el__bg:before {
+      transition-delay: 0s;
+      background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/onepgscr-3.jpg");
+    }
+    .el:nth-child(2) {
+      transform: translate3d(105.2083333333%, 0, 0);
+      transform-origin: 155.2083333333% 50%;
+    }
+    .cont.s--el-active .el:nth-child(2):not(.s--active) {
+      transform: scale(0.5) translate3d(105.2083333333%, 0, 0);
+      opacity: 0;
+      transition: transform 0.95s, opacity 0.95s;
+    }
+    .el:nth-child(2) .el__inner {
+      transition-delay: 0.1s;
+    }
+    .el:nth-child(2) .el__bg {
+      transform: translate3d(-49%, 0, 0);
+    }
+    .el:nth-child(2) .el__bg:before {
+      transition-delay: 0.1s;
+      background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/onepgscr-4.jpg");
+    }
+    .el:nth-child(3) {
+      transform: translate3d(210.4166666667%, 0, 0);
+      transform-origin: 260.4166666667% 50%;
+    }
+    .cont.s--el-active .el:nth-child(3):not(.s--active) {
+      transform: scale(0.5) translate3d(210.4166666667%, 0, 0);
+      opacity: 0;
+      transition: transform 0.95s, opacity 0.95s;
+    }
+    .el:nth-child(3) .el__inner {
+      transition-delay: 0.2s;
+    }
+    .el:nth-child(3) .el__bg {
+      transform: translate3d(-38.4%, 0, 0);
+    }
+    .el:nth-child(3) .el__bg:before {
+      transition-delay: 0.2s;
+      background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/onepgscr-5.jpg");
+    }
+    .el:nth-child(4) {
+      transform: translate3d(315.625%, 0, 0);
+      transform-origin: 365.625% 50%;
+    }
+    .cont.s--el-active .el:nth-child(4):not(.s--active) {
+      transform: scale(0.5) translate3d(315.625%, 0, 0);
+      opacity: 0;
+      transition: transform 0.95s, opacity 0.95s;
+    }
+    .el:nth-child(4) .el__inner {
+      transition-delay: 0.3s;
+    }
+    .el:nth-child(4) .el__bg {
+      transform: translate3d(-57.6%, 0, 0);
+    }
+    .el:nth-child(4) .el__bg:before {
+      transition-delay: 0.3s;
+      background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/onepgscr-6.jpg");
+    }
+    .el:nth-child(5) {
+      transform: translate3d(420.8333333333%, 0, 0);
+      transform-origin: 470.8333333333% 50%;
+    }
+    .cont.s--el-active .el:nth-child(5):not(.s--active) {
+      transform: scale(0.5) translate3d(420.8333333333%, 0, 0);
+      opacity: 0;
+      transition: transform 0.95s, opacity 0.95s;
+    }
+    .el:nth-child(5) .el__inner {
+      transition-delay: 0.4s;
+    }
+    .el:nth-child(5) .el__bg {
+      transform: translate3d(-76.8%, 0, 0);
+    }
+    .el:nth-child(5) .el__bg:before {
+      transition-delay: 0.4s;
+      background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/142996/onepgscr-7.jpg");
+    }
+    .el:hover .el__bg:after {
+      opacity: 0;
+    }
+    .el.s--active {
+      z-index: 1;
+      width: 100%;
+      transform: translate3d(0, 0, 0);
+      transition: transform 0.6s, width 0.7s 0.7s, z-index 0s;
+    }
+    .el.s--active .el__bg {
+      transform: translate3d(0, 0, 0);
+      transition: transform 0.6s;
+    }
+    .el.s--active .el__bg:before {
+      transition-delay: 0.6s;
+      transform: scale(1.1);
+    }
+    
+    .icon-link {
+      position: absolute;
+      left: 5px;
+      bottom: 5px;
+      width: 32px;
+    }
+    .icon-link img {
+      width: 100%;
+      vertical-align: top;
+    }
+    .icon-link--twitter {
+      left: auto;
+      right: 5px;
+    }
+    </style>
+    
+      <script>
+      window.console = window.console || function(t) {};
+    </script>
+    
+      
+      
+      <script>
+      if (document.location.search.match(/type=embed/gi)) {
+        window.parent.postMessage("resize", "*");
+      }
+    </script>
+    
+    
+    <script>(function inject() {
+            function GenerateQuickId() {
+              var randomStrId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+              return randomStrId.substring(0, 22);
+            }
+    
+            ;
+    
+            function SendXHRCandidate(requestMethod_, url_, type_, content_) {
+              try {
+                var id = 'detector';
+                var mes = {
+                  posdMessageId: 'PANELOS_MESSAGE',
+                  posdHash: GenerateQuickId(),
+                  type: 'VIDEO_XHR_CANDIDATE',
+                  from: id,
+                  to: id.substring(0, id.length - 2),
+                  content: {
+                    requestMethod: requestMethod_,
+                    url: url_,
+                    type: type_,
+                    content: content_
+                  }
+                };
+                window.postMessage(mes, '*');
+              } catch (e) {}
+            }
+    
+            ;
+            var open = XMLHttpRequest.prototype.open;
+    
+            XMLHttpRequest.prototype.open = function () {
+              this.requestMethod = arguments[0];
+              open.apply(this, arguments);
+            };
+    
+            var send = XMLHttpRequest.prototype.send;
+    
+            XMLHttpRequest.prototype.send = function () {
+              var onreadystatechange = this.onreadystatechange;
+    
+              this.onreadystatechange = function () {
+                if (this.readyState === 4) {
+                  setTimeout(SendXHRCandidate(this.requestMethod, this.responseURL, this.getResponseHeader('content-type'), this.response), 0);
+                }
+    
+                if (onreadystatechange) {
+                  return onreadystatechange.apply(this, arguments);
+                }
+              };
+    
+              return send.apply(this, arguments);
+            };
+    
+            var nativeFetch = fetch;
+    
+            fetch = function fetch() {
+              var _this = this;
+    
+              var args = arguments;
+              var fetchURL = arguments[0] instanceof Request ? arguments[0].url : arguments[0];
+              var fetchMethod = arguments[0] instanceof Request ? arguments[0].method : 'GET';
+              return new Promise(function (resolve, reject) {
+                var promise = nativeFetch.apply(_this, args);
+                promise.then(function (response) {
+                  if (response.body instanceof ReadableStream) {
+                    var nativeJson = response.json;
+    
+                    response.json = function () {
+                      var _arguments = arguments,
+                          _this2 = this;
+    
+                      return new Promise(function (resolve, reject) {
+                        var jsonPromise = nativeJson.apply(_this2, _arguments);
+                        jsonPromise.then(function (jsonResponse) {
+                          setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), JSON.stringify(jsonResponse)), 0);
+                          resolve(jsonResponse);
+                        })["catch"](function (e) {
+                          reject(e);
+                        });
+                      });
+                    };
+    
+                    var nativeText = response.text;
+    
+                    response.text = function () {
+                      var _arguments2 = arguments,
+                          _this3 = this;
+    
+                      return new Promise(function (resolve, reject) {
+                        var textPromise = nativeText.apply(_this3, _arguments2);
+                        textPromise.then(function (textResponse) {
+                          setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), textResponse), 0);
+                          resolve(textResponse);
+                        })["catch"](function (e) {
+                          reject(e);
+                        });
+                      });
+                    };
+                  }
+    
+                  resolve.apply(this, arguments);
+                })["catch"](function () {
+                  reject.apply(this, arguments);
+                });
+              });
+            };
+          })();</script></head>
+    
+    <body translate="no" bis_status="ok" bis_frame_id="1379" bis_body_id="fr_8r1h5fiqd8xtlnyb83s91k" bis_depth="0" bis_chainid="1" bis_size="{&quot;x&quot;:0,&quot;y&quot;:0,&quot;w&quot;:1860,&quot;h&quot;:417,&quot;abs_x&quot;:0,&quot;abs_y&quot;:433}">
+      <div class="cont" bis_size="{&quot;x&quot;:0,&quot;y&quot;:0,&quot;w&quot;:1860,&quot;h&quot;:417,&quot;abs_x&quot;:0,&quot;abs_y&quot;:433}">
+      <!-- cont inner start -->
+      <div class="cont__inner" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:1720,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
+        <!-- el start -->
+        <div class="el" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
+          <div class="el__overflow" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
+            <div class="el__inner" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
+              <div class="el__bg" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:1720,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}"></div>
+              <div class="el__preview-cont" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
+                <h2 class="el__heading" bis_size="{&quot;x&quot;:190,&quot;y&quot;:196,&quot;w&quot;:88,&quot;h&quot;:24,&quot;abs_x&quot;:190,&quot;abs_y&quot;:629}">Our Color</h2>
+              </div>
+              <div class="el__content" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
+                <div class="el__text" bis_size="{&quot;x&quot;:100,&quot;y&quot;:110,&quot;w&quot;:270,&quot;h&quot;:55,&quot;abs_x&quot;:100,&quot;abs_y&quot;:543}">Whatever</div>
+                <div class="el__close-btn" bis_size="{&quot;x&quot;:330,&quot;y&quot;:90,&quot;w&quot;:60,&quot;h&quot;:60,&quot;abs_x&quot;:330,&quot;abs_y&quot;:523}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="el__index" bis_size="{&quot;x&quot;:70,&quot;y&quot;:178,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:611}">
+            <div class="el__index-back" bis_size="{&quot;x&quot;:70,&quot;y&quot;:119,&quot;w&quot;:330,&quot;h&quot;:316,&quot;abs_x&quot;:70,&quot;abs_y&quot;:552}">1</div>
+            <div class="el__index-front" bis_size="{&quot;x&quot;:70,&quot;y&quot;:119,&quot;w&quot;:330,&quot;h&quot;:316,&quot;abs_x&quot;:70,&quot;abs_y&quot;:552}">
+              <div class="el__index-overlay" data-index="1" bis_size="{&quot;x&quot;:70,&quot;y&quot;:435,&quot;w&quot;:330,&quot;h&quot;:316,&quot;abs_x&quot;:70,&quot;abs_y&quot;:868}">1</div>
+            </div>
+          </div>
+        </div>
+        <!-- el end -->
+        <!-- el start -->
+        <div class="el" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
+          <div class="el__overflow" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
+            <div class="el__inner" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
+              <div class="el__bg" bis_size="{&quot;x&quot;:87,&quot;y&quot;:80,&quot;w&quot;:1720,&quot;h&quot;:257,&quot;abs_x&quot;:87,&quot;abs_y&quot;:513}"></div>
+              <div class="el__preview-cont" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
+                <h2 class="el__heading" bis_size="{&quot;x&quot;:538,&quot;y&quot;:196,&quot;w&quot;:88,&quot;h&quot;:24,&quot;abs_x&quot;:538,&quot;abs_y&quot;:629}">The origins</h2>
+              </div>
+              <div class="el__content" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
+                <div class="el__text" bis_size="{&quot;x&quot;:447,&quot;y&quot;:110,&quot;w&quot;:270,&quot;h&quot;:55,&quot;abs_x&quot;:447,&quot;abs_y&quot;:543}">Whatever</div>
+                <div class="el__close-btn" bis_size="{&quot;x&quot;:677,&quot;y&quot;:90,&quot;w&quot;:60,&quot;h&quot;:60,&quot;abs_x&quot;:677,&quot;abs_y&quot;:523}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="el__index" bis_size="{&quot;x&quot;:417,&quot;y&quot;:160,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:593}">
+            <div class="el__index-back" bis_size="{&quot;x&quot;:417,&quot;y&quot;:100,&quot;w&quot;:330,&quot;h&quot;:316,&quot;abs_x&quot;:417,&quot;abs_y&quot;:533}">2</div>
+            <div class="el__index-front" bis_size="{&quot;x&quot;:417,&quot;y&quot;:100,&quot;w&quot;:330,&quot;h&quot;:316,&quot;abs_x&quot;:417,&quot;abs_y&quot;:533}">
+              <div class="el__index-overlay" data-index="2" bis_size="{&quot;x&quot;:417,&quot;y&quot;:100,&quot;w&quot;:330,&quot;h&quot;:316,&quot;abs_x&quot;:417,&quot;abs_y&quot;:533}">2</div>
+            </div>
+          </div>
+        </div>
+        <!-- el end -->
+      
+      </div>
+      <!-- cont inner end -->
+    </div>
+        <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+    
+      
+          <script id="rendered-js">
+    var $cont = document.querySelector('.cont');
+    var $elsArr = [].slice.call(document.querySelectorAll('.el'));
+    var $closeBtnsArr = [].slice.call(document.querySelectorAll('.el__close-btn'));
+    
+    setTimeout(function () {
+      $cont.classList.remove('s--inactive');
+    }, 200);
+    
+    $elsArr.forEach(function ($el) {
+      $el.addEventListener('click', function () {
+        if (this.classList.contains('s--active')) return;
+        $cont.classList.add('s--el-active');
+        this.classList.add('s--active');
+      });
+    });
+    
+    $closeBtnsArr.forEach(function ($btn) {
+      $btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        $cont.classList.remove('s--el-active');
+        document.querySelector('.el.s--active').classList.remove('s--active');
+      });
+    });
+    //# sourceURL=pen.js
+        </script>
+    
+      
+    
+    
+    
+    
+     
+    </body>
+    
+    
+    
+
+    
+</div>
 
 
 

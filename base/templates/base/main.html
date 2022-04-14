@@ -27,8 +27,8 @@
             <div class="menu-inner" bis_skin_checked="1" style="    padding-top: 10px;">
                 <div class="menu-left menu-col" bis_skin_checked="1">
                     <ul id="header-main" class="menu">
-                        <li id="menu-item-307" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-307"><a href="{% url 'mtt' %}" style="font-family: Rogan-Regular">Meet The Team</a></li>
-                        <li id="menu-item-310" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-310"><a href="{% url 'sponsor' %}" style="font-family: Rogan-Regular;">Sponsors</a></li>
+                        <li id="menu-item-307" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-307"><a href="{% url 'mtt' %}" style="font-family: Rogan-Regular">Our Sponsors</a></li>
+                        <li id="menu-item-310" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-310"><a href="{% url 'sponsor' %}" style="font-family: Rogan-Regular;">Why Sponsor Us</a></li>
                     </ul>
                 </div>
                 <div class="menu-title" bis_skin_checked="1">
@@ -42,28 +42,33 @@
                 <div class="menu-right menu-col" bis_skin_checked="1" style="padding-right: 40px;">
 
                     <ul id="header-main" class="menu">
-                        <li id="menu-item-1006" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1006"><a href="{% url 'aboutus' %}">About Us</a></li>
+                        <li id="menu-item-1006" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1006"><a href="{% url 'aboutus' %}" style="font-family: Rogan-Regular">About Us</a></li>
                     </ul>
 
                     <ul id="header-main" class="menu">
-                        <li id="menu-item-1006" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1006"><a href="{% url 'contactus' %}">Contact Us</a></li>
+                        <li id="menu-item-1006" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1006"><a href="{% url 'contactus' %}" style="font-family: Rogan-Regular">Contact Us</a></li>
                     </ul>
-
-
-
-                    <!-- <button type="button" class="menu-item menu-button" aria-label="Toggle menu" title="Toggle Menu" aria-controls="site-menu">
-                      Menu
-                      <svg class="icon menu " width="10" height="10">
-                        <use xlink:href="https://www.zoox.com/wp-content/themes/zoox/assets/img/sprite.svg#menu"></use>
-                      </svg>
-                    </button>
- -->
-
                 </div>
             </div>
         </div>
     </div>
 
+    <style>
+        a{
+        outline: none !important;
+        transition: 0.3s;
+
+        }
+        a:hover {
+        
+
+        opacity: 0.8;
+        text-decoration: none ;
+        color: #57b846;
+        
+}
+
+    </style>
 
     {% block content %} {% endblock content %}
 </body>
