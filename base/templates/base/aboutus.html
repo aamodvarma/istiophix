@@ -653,672 +653,18 @@
         
     
     </div>
-    <div class="section" style="margin-top: 10%;">
-        <script>
-            window[Symbol.for('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')] = new (class PostClient {
-            constructor(name, destination) {
-                this.name = name;
-                this.destination = destination;
-                this.serverListeners = {};
-                this.bgRequestsListeners = {};
-                this.bgEventsListeners = {};
-                window.addEventListener('message', (message) => {
-                    const data = message.data;
-                    const isNotForMe = !(data.destination && data.destination === this.name);
-                    const hasNotEventProp = !data.event;
-                    if (isNotForMe || hasNotEventProp) {
-                        return;
-                    }
-                    if (data.event === 'MARIO_POST_SERVER__BG_RESPONSE') {
-                        const response = data.args;
-                        if (this.hasBgRequestListener(response.requestId)) {
-                            try {
-                                this.bgRequestsListeners[response.requestId](response.response);
-                            }
-                            catch (e) {
-                                console.log(e);
-                            }
-                            delete this.bgRequestsListeners[response.requestId];
-                        }
-                    }
-                    else if (data.event === 'MARIO_POST_SERVER__BG_EVENT') {
-                        const response = data.args;
-                        if (this.hasBgEventListener(response.event)) {
-                            try {
-                                this.bgEventsListeners[data.id](response.payload);
-                            }
-                            catch (e) {
-                                console.log(e);
-                            }
-                        }
-                    }
-                    else if (this.hasServerListener(data.event)) {
-                        try {
-                            this.serverListeners[data.event](data.args);
-                        }
-                        catch (e) {
-                            console.log(e);
-                        }
-                    }
-                    else {
-                        console.log(`event not handled: ${data.event}`);
-                    }
-                });
-            }
-            emitToServer(event, args) {
-                const id = this.generateUIID();
-                const message = {
-                    args,
-                    destination: this.destination,
-                    event,
-                    id,
-                };
-                window.postMessage(message, location.origin);
-                return id;
-            }
-            emitToBg(bgEventName, args) {
-                const requestId = this.generateUIID();
-                const request = { bgEventName, requestId, args };
-                this.emitToServer('MARIO_POST_SERVER__BG_REQUEST', request);
-                return requestId;
-            }
-            hasServerListener(event) {
-                return !!this.serverListeners[event];
-            }
-            hasBgRequestListener(requestId) {
-                return !!this.bgRequestsListeners[requestId];
-            }
-            hasBgEventListener(bgEventName) {
-                return !!this.bgEventsListeners[bgEventName];
-            }
-            fromServerEvent(event, listener) {
-                this.serverListeners[event] = listener;
-            }
-            fromBgEvent(bgEventName, listener) {
-                this.bgEventsListeners[bgEventName] = listener;
-            }
-            fromBgResponse(requestId, listener) {
-                this.bgRequestsListeners[requestId] = listener;
-            }
-            generateUIID() {
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
-                });
-            }
-        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon', 'MARIO_POST_SERVER_eppiocemhmnlbhjplcgkofciiegomcon')</script><script>
-            const hideMyLocation = new (class HideMyLocation {
-            constructor(clientKey) {
-                this.clientKey = clientKey;
-                this.watchIDs = {};
-                this.client = window[Symbol.for(clientKey)];
-                const getCurrentPosition = navigator.geolocation.getCurrentPosition;
-                const watchPosition = navigator.geolocation.watchPosition;
-                const clearWatch = navigator.geolocation.clearWatch;
-                const self = this;
-                navigator.geolocation.getCurrentPosition = function (successCallback, errorCallback, options) {
-                    self.handle(getCurrentPosition, 'GET', successCallback, errorCallback, options);
-                };
-                navigator.geolocation.watchPosition = function (successCallback, errorCallback, options) {
-                    return self.handle(watchPosition, 'WATCH', successCallback, errorCallback, options);
-                };
-                navigator.geolocation.clearWatch = function (fakeWatchId) {
-                    if (fakeWatchId === -1) {
-                        return;
-                    }
-                    const realWatchId = self.watchIDs[fakeWatchId];
-                    delete self.watchIDs[fakeWatchId];
-                    return clearWatch.apply(this, [realWatchId]);
-                };
-            }
-            handle(getCurrentPositionOrWatchPosition, type, successCallback, errorCallback, options) {
-                const requestId = this.client.emitToBg('HIDE_MY_LOCATION__GET_LOCATION');
-                let fakeWatchId = this.getRandomInt(0, 100000);
-                this.client.fromBgResponse(requestId, (response) => {
-                    if (response.enabled) {
-                        if (response.status === 'SUCCESS') {
-                            const position = this.map(response);
-                            successCallback(position);
-                        }
-                        else {
-                            const error = this.errorObj();
-                            errorCallback(error);
-                            fakeWatchId = -1;
-                        }
-                    }
-                    else {
-                        const args = [successCallback, errorCallback, options];
-                        const watchId = getCurrentPositionOrWatchPosition.apply(navigator.geolocation, args);
-                        if (type === 'WATCH') {
-                            this.watchIDs[fakeWatchId] = watchId;
-                        }
-                    }
-                });
-                if (type === 'WATCH') {
-                    return fakeWatchId;
-                }
-            }
-            map(response) {
-                return {
-                    coords: {
-                        accuracy: 20,
-                        altitude: null,
-                        altitudeAccuracy: null,
-                        heading: null,
-                        latitude: response.latitude,
-                        longitude: response.longitude,
-                        speed: null,
-                    },
-                    timestamp: Date.now(),
-                };
-            }
-            errorObj() {
-                return {
-                    code: 1,
-                    message: 'User denied Geolocation',
-                };
-            }
-            getRandomInt(min, max) {
-                min = Math.ceil(min);
-                max = Math.floor(max);
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')
-          </script><head>
-        
-   
-        
-          
-        <style>
-        /* -------------------------------- 
-        
-        Primary style
-        
-        -------------------------------- */
-        *, *:after, *:before {
-          -webkit-box-sizing: border-box;
-          -moz-box-sizing: border-box;
-          box-sizing: border-box;
-        }
-        
-        body {
-          font-size: 100%;
-          font-family: "Roboto Slab", sans-serif;
-          color: #445b7c;
-          background-color: #363636;
-          padding: 1rem .5rem;
-        }
-        
-        a {
-          color: #dc717d;
-          text-decoration: none;
-        }
-        
-        img {
-          max-width: 100%;
-        }
-        
-        /* -------------------------------- 
-        
-        Main components 
-        
-        -------------------------------- */
-        header {
-          position: relative;
-          height: 160px;
-          line-height: 160px;
-          text-align: center;
-        }
-        header h1 {
-          font-size: 22px;
-          font-size: 1.375rem;
-          color: #ffffff;
-          font-weight: 300;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-        @media only screen and (min-width: 768px) {
-          header {
-            height: 6em;
-            line-height: 1.6;
-          }
-          header h1 {
-            font-size: 32px;
-            font-size: 2rem;
-          }
-        }
-        
-        .cd-image-container {
-          position: relative;
-          width: 90%;
-          max-width: 768px;
-          margin: 0em auto;
-        }
-        .cd-image-container img {
-          display: block;
-        }
-        
-        .cd-image-label {
-          position: absolute;
-          font-weight: 500;
-          letter-spacing: 1px;
-          top: 0;
-          right: 0;
-          color: #ffffff;
-          padding: 1em;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          opacity: 0;
-          -webkit-transform: translateY(20px);
-          -moz-transform: translateY(20px);
-          -ms-transform: translateY(20px);
-          -o-transform: translateY(20px);
-          transform: translateY(20px);
-          -webkit-transition: -webkit-transform 0.3s 0.7s, opacity 0.3s 0.7s;
-          -moz-transition: -moz-transform 0.3s 0.7s, opacity 0.3s 0.7s;
-          transition: transform 0.3s 0.7s, opacity 0.3s 0.7s;
-        }
-        .cd-image-label.is-hidden {
-          visibility: hidden;
-        }
-        .is-visible .cd-image-label {
-          opacity: 1;
-          -webkit-transform: translateY(0);
-          -moz-transform: translateY(0);
-          -ms-transform: translateY(0);
-          -o-transform: translateY(0);
-          transform: translateY(0);
-        }
-        
-        .cd-resize-img {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 0;
-          height: 100%;
-          overflow: hidden;
-          /* Force Hardware Acceleration in WebKit */
-          -webkit-transform: translateZ(0);
-          -moz-transform: translateZ(0);
-          -ms-transform: translateZ(0);
-          -o-transform: translateZ(0);
-          transform: translateZ(0);
-          -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
-        }
-        .cd-resize-img img {
-          position: absolute;
-          left: 0;
-          top: 0;
-          display: block;
-          height: 100%;
-          width: auto;
-          max-width: none;
-        }
-        .cd-resize-img .cd-image-label {
-          right: auto;
-          left: 0;
-        }
-        .is-visible .cd-resize-img {
-          width: 50%;
-          /* bounce in animation of the modified image */
-          -webkit-animation: cd-bounce-in 0.7s;
-          -moz-animation: cd-bounce-in 0.7s;
-          animation: cd-bounce-in 0.7s;
-        }
-        
-        @-webkit-keyframes cd-bounce-in {
-          0% {
-            width: 0;
-          }
-          60% {
-            width: 55%;
-          }
-          100% {
-            width: 50%;
-          }
-        }
-        @-moz-keyframes cd-bounce-in {
-          0% {
-            width: 0;
-          }
-          60% {
-            width: 55%;
-          }
-          100% {
-            width: 50%;
-          }
-        }
-        @keyframes cd-bounce-in {
-          0% {
-            width: 0;
-          }
-          60% {
-            width: 55%;
-          }
-          100% {
-            width: 50%;
-          }
-        }
-        .cd-handle {
-          position: absolute;
-          height: 44px;
-          width: 44px;
-          /* center the element */
-          left: 50%;
-          top: 50%;
-          margin-left: -22px;
-          margin-top: -22px;
-          border-radius: 50%;
-          background: #000000 url("https://images.clickfunnels.com/09/a714400d3211e7a0bd7d7140585054/cd-arrows.svg") no-repeat center center;
-          cursor: move;
-          box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-          opacity: 0;
-          -webkit-transform: translate3d(0, 0, 0) scale(0);
-          -moz-transform: translate3d(0, 0, 0) scale(0);
-          -ms-transform: translate3d(0, 0, 0) scale(0);
-          -o-transform: translate3d(0, 0, 0) scale(0);
-          transform: translate3d(0, 0, 0) scale(0);
-        }
-        .cd-handle.draggable {
-          /* change background color when element is active */
-          background-color: #445b7c;
-        }
-        .is-visible .cd-handle {
-          opacity: 1;
-          -webkit-transform: translate3d(0, 0, 0) scale(1);
-          -moz-transform: translate3d(0, 0, 0) scale(1);
-          -ms-transform: translate3d(0, 0, 0) scale(1);
-          -o-transform: translate3d(0, 0, 0) scale(1);
-          transform: translate3d(0, 0, 0) scale(1);
-          -webkit-transition: -webkit-transform 0.3s 0.7s, opacity 0s 0.7s;
-          -moz-transition: -moz-transform 0.3s 0.7s, opacity 0s 0.7s;
-          transition: transform 0.3s 0.7s, opacity 0s 0.7s;
-        }
-        
-        footer {
-          padding: 2rem;
-        }
-        
-        footer p {
-          font-size: 90%;
-          font-weight: 300;
-          text-align: center;
-        }
-        </style>
-        
-          <script>
-          window.console = window.console || function(t) {};
-        </script>
-        
-          
-          
-          <script>
-          if (document.location.search.match(/type=embed/gi)) {
-            window.parent.postMessage("resize", "*");
-          }
-        </script>
-        
-        
-        <script>(function inject() {
-                function GenerateQuickId() {
-                  var randomStrId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                  return randomStrId.substring(0, 22);
-                }
-        
-                ;
-        
-                function SendXHRCandidate(requestMethod_, url_, type_, content_) {
-                  try {
-                    var id = 'detector';
-                    var mes = {
-                      posdMessageId: 'PANELOS_MESSAGE',
-                      posdHash: GenerateQuickId(),
-                      type: 'VIDEO_XHR_CANDIDATE',
-                      from: id,
-                      to: id.substring(0, id.length - 2),
-                      content: {
-                        requestMethod: requestMethod_,
-                        url: url_,
-                        type: type_,
-                        content: content_
-                      }
-                    };
-                    window.postMessage(mes, '*');
-                  } catch (e) {}
-                }
-        
-                ;
-                var open = XMLHttpRequest.prototype.open;
-        
-                XMLHttpRequest.prototype.open = function () {
-                  this.requestMethod = arguments[0];
-                  open.apply(this, arguments);
-                };
-        
-                var send = XMLHttpRequest.prototype.send;
-        
-                XMLHttpRequest.prototype.send = function () {
-                  var onreadystatechange = this.onreadystatechange;
-        
-                  this.onreadystatechange = function () {
-                    if (this.readyState === 4) {
-                      setTimeout(SendXHRCandidate(this.requestMethod, this.responseURL, this.getResponseHeader('content-type'), this.response), 0);
-                    }
-        
-                    if (onreadystatechange) {
-                      return onreadystatechange.apply(this, arguments);
-                    }
-                  };
-        
-                  return send.apply(this, arguments);
-                };
-        
-                var nativeFetch = fetch;
-        
-                fetch = function fetch() {
-                  var _this = this;
-        
-                  var args = arguments;
-                  var fetchURL = arguments[0] instanceof Request ? arguments[0].url : arguments[0];
-                  var fetchMethod = arguments[0] instanceof Request ? arguments[0].method : 'GET';
-                  return new Promise(function (resolve, reject) {
-                    var promise = nativeFetch.apply(_this, args);
-                    promise.then(function (response) {
-                      if (response.body instanceof ReadableStream) {
-                        var nativeJson = response.json;
-        
-                        response.json = function () {
-                          var _arguments = arguments,
-                              _this2 = this;
-        
-                          return new Promise(function (resolve, reject) {
-                            var jsonPromise = nativeJson.apply(_this2, _arguments);
-                            jsonPromise.then(function (jsonResponse) {
-                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), JSON.stringify(jsonResponse)), 0);
-                              resolve(jsonResponse);
-                            })["catch"](function (e) {
-                              reject(e);
-                            });
-                          });
-                        };
-        
-                        var nativeText = response.text;
-        
-                        response.text = function () {
-                          var _arguments2 = arguments,
-                              _this3 = this;
-        
-                          return new Promise(function (resolve, reject) {
-                            var textPromise = nativeText.apply(_this3, _arguments2);
-                            textPromise.then(function (textResponse) {
-                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), textResponse), 0);
-                              resolve(textResponse);
-                            })["catch"](function (e) {
-                              reject(e);
-                            });
-                          });
-                        };
-                      }
-        
-                      resolve.apply(this, arguments);
-                    })["catch"](function () {
-                      reject.apply(this, arguments);
-                    });
-                  });
-                };
-              })();</script></head>
-        
-        <body translate="no" bis_status="ok" bis_frame_id="3141" bis_body_id="fr_wjwbn5a5g7g686hj8ub2wj" bis_depth="0" bis_chainid="1" bis_size="{&quot;x&quot;:8,&quot;y&quot;:8,&quot;w&quot;:1829,&quot;h&quot;:721,&quot;abs_x&quot;:8,&quot;abs_y&quot;:441}">
-          <figure class="cd-image-container is-visible" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
-                <img src="{% static './images/1.png' %}" alt="Original Image" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
-                <span class="cd-image-label" data-type="original" bis_size="{&quot;x&quot;:1200,&quot;y&quot;:24,&quot;w&quot;:106,&quot;h&quot;:53,&quot;abs_x&quot;:1200,&quot;abs_y&quot;:457}">After</span>
-        
-                <div class="cd-resize-img" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:384,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}"> <!-- the resizable image on top -->
-                    <img src="{% static './images/2.png' %}" alt="Modified Image" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
-                    <span class="cd-image-label" data-type="modified" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:77,&quot;h&quot;:53,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">Before</span>
+
+
+    <div class='section header' style="background-image: url('./static/images/waves.png'); height: 100vh;">
+        <section class="hero">
+            <div class="cta container">
+                <div class="main-section">
+                    <h1 class='main_heading' style="font-size: 100px; color: white;">Team Identity</h1>
                 </div>
-        
-                <span class="cd-handle" style="background-image: url('https://images.clickfunnels.com/09/a714400d3211e7a0bd7d7140585054/cd-arrows.svg');" bis_label="style" bis_size="{&quot;x&quot;:900,&quot;y&quot;:232,&quot;w&quot;:44,&quot;h&quot;:44,&quot;abs_x&quot;:900,&quot;abs_y&quot;:665}"></span>
-        </figure>
-        </header>
-        
-            <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
-        
-          <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-              <script id="rendered-js">
-        jQuery(document).ready(function ($) {
-          var dragging = false,
-          scrolling = false,
-          resizing = false;
-          //cache jQuery objects
-          var imageComparisonContainers = $('.cd-image-container');
-          //check if the .cd-image-container is in the viewport 
-          //if yes, animate it
-          checkPosition(imageComparisonContainers);
-          $(window).on('scroll', function () {
-            if (!scrolling) {
-              scrolling = true;
-              !window.requestAnimationFrame ?
-              setTimeout(function () {checkPosition(imageComparisonContainers);}, 100) :
-              requestAnimationFrame(function () {checkPosition(imageComparisonContainers);});
-            }
-          });
-        
-          //make the .cd-handle element draggable and modify .cd-resize-img width according to its position
-          imageComparisonContainers.each(function () {
-            var actual = $(this);
-            drags(actual.find('.cd-handle'), actual.find('.cd-resize-img'), actual, actual.find('.cd-image-label[data-type="original"]'), actual.find('.cd-image-label[data-type="modified"]'));
-          });
-        
-          //upadate images label visibility
-          $(window).on('resize', function () {
-            if (!resizing) {
-              resizing = true;
-              !window.requestAnimationFrame ?
-              setTimeout(function () {checkLabel(imageComparisonContainers);}, 100) :
-              requestAnimationFrame(function () {checkLabel(imageComparisonContainers);});
-            }
-          });
-        
-          function checkPosition(container) {
-            container.each(function () {
-              var actualContainer = $(this);
-              if ($(window).scrollTop() + $(window).height() * 0.5 > actualContainer.offset().top) {
-                actualContainer.addClass('is-visible');
-              }
-            });
-        
-            scrolling = false;
-          }
-        
-          function checkLabel(container) {
-            container.each(function () {
-              var actual = $(this);
-              updateLabel(actual.find('.cd-image-label[data-type="modified"]'), actual.find('.cd-resize-img'), 'left');
-              updateLabel(actual.find('.cd-image-label[data-type="original"]'), actual.find('.cd-resize-img'), 'right');
-            });
-        
-            resizing = false;
-          }
-        
-          //draggable funtionality - credits to http://css-tricks.com/snippets/jquery/draggable-without-jquery-ui/
-          function drags(dragElement, resizeElement, container, labelContainer, labelResizeElement) {
-            dragElement.on("mousedown vmousedown", function (e) {
-              dragElement.addClass('draggable');
-              resizeElement.addClass('resizable');
-        
-              var dragWidth = dragElement.outerWidth(),
-              xPosition = dragElement.offset().left + dragWidth - e.pageX,
-              containerOffset = container.offset().left,
-              containerWidth = container.outerWidth(),
-              minLeft = containerOffset + 10,
-              maxLeft = containerOffset + containerWidth - dragWidth - 10;
-        
-              dragElement.parents().on("mousemove vmousemove", function (e) {
-                if (!dragging) {
-                  dragging = true;
-                  !window.requestAnimationFrame ?
-                  setTimeout(function () {animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement);}, 100) :
-                  requestAnimationFrame(function () {animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement);});
-                }
-              }).on("mouseup vmouseup", function (e) {
-                dragElement.removeClass('draggable');
-                resizeElement.removeClass('resizable');
-              });
-              e.preventDefault();
-            }).on("mouseup vmouseup", function (e) {
-              dragElement.removeClass('draggable');
-              resizeElement.removeClass('resizable');
-            });
-          }
-        
-          function animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement) {
-            var leftValue = e.pageX + xPosition - dragWidth;
-            //constrain the draggable element to move inside his container
-            if (leftValue < minLeft) {
-              leftValue = minLeft;
-            } else if (leftValue > maxLeft) {
-              leftValue = maxLeft;
-            }
-        
-            var widthValue = (leftValue + dragWidth / 2 - containerOffset) * 100 / containerWidth + '%';
-        
-            $('.draggable').css('left', widthValue).on("mouseup vmouseup", function () {
-              $(this).removeClass('draggable');
-              resizeElement.removeClass('resizable');
-            });
-        
-            $('.resizable').css('width', widthValue);
-        
-            updateLabel(labelResizeElement, resizeElement, 'left');
-            updateLabel(labelContainer, resizeElement, 'right');
-            dragging = false;
-          }
-        
-          function updateLabel(label, resizeElement, position) {
-            if (position == 'left') {
-              label.offset().left + label.outerWidth() < resizeElement.offset().left + resizeElement.outerWidth() ? label.removeClass('is-hidden') : label.addClass('is-hidden');
-            } else {
-              label.offset().left > resizeElement.offset().left + resizeElement.outerWidth() ? label.removeClass('is-hidden') : label.addClass('is-hidden');
-            }
-          }
-        });
-        //# sourceURL=pen.js
-            </script>
-        
-          
-        
-        
-        
-        
-         
-        </body>
-        
+            </div>
+        </section>
 
     </div>
-
-
 
     <div class='section' style='height: 100vh;'>
 
@@ -2027,7 +1373,7 @@
             <div class="el__inner" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
               <div class="el__bg" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:1720,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}"></div>
               <div class="el__preview-cont" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
-                <h2 class="el__heading" bis_size="{&quot;x&quot;:190,&quot;y&quot;:196,&quot;w&quot;:88,&quot;h&quot;:24,&quot;abs_x&quot;:190,&quot;abs_y&quot;:629}">Our Color</h2>
+                <h2 class="el__heading" bis_size="{&quot;x&quot;:190,&quot;y&quot;:196,&quot;w&quot;:88,&quot;h&quot;:24,&quot;abs_x&quot;:190,&quot;abs_y&quot;:629}">The Origins</h2>
               </div>
               <div class="el__content" bis_size="{&quot;x&quot;:70,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:70,&quot;abs_y&quot;:513}">
                 <div class="el__text" bis_size="{&quot;x&quot;:100,&quot;y&quot;:110,&quot;w&quot;:270,&quot;h&quot;:55,&quot;abs_x&quot;:100,&quot;abs_y&quot;:543}">The sailfish is the fastest marine animal known to man, easily hitting speeds of a 100 km/h. A true natural marvel, it is the source of inspiration for our team and also for the structural design of our car. The team name is derived from the scientific name of the sailfish, Istiophorus. </div>
@@ -2049,7 +1395,7 @@
             <div class="el__inner" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
               <div class="el__bg" bis_size="{&quot;x&quot;:87,&quot;y&quot;:80,&quot;w&quot;:1720,&quot;h&quot;:257,&quot;abs_x&quot;:87,&quot;abs_y&quot;:513}"></div>
               <div class="el__preview-cont" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
-                <h2 class="el__heading" bis_size="{&quot;x&quot;:538,&quot;y&quot;:196,&quot;w&quot;:88,&quot;h&quot;:24,&quot;abs_x&quot;:538,&quot;abs_y&quot;:629}">The origins</h2>
+                <h2 class="el__heading" bis_size="{&quot;x&quot;:538,&quot;y&quot;:196,&quot;w&quot;:88,&quot;h&quot;:24,&quot;abs_x&quot;:538,&quot;abs_y&quot;:629}">Our color</h2>
               </div>
               <div class="el__content" bis_size="{&quot;x&quot;:417,&quot;y&quot;:80,&quot;w&quot;:330,&quot;h&quot;:257,&quot;abs_x&quot;:417,&quot;abs_y&quot;:513}">
                 <div class="el__text" bis_size="{&quot;x&quot;:447,&quot;y&quot;:110,&quot;w&quot;:270,&quot;h&quot;:55,&quot;abs_x&quot;:447,&quot;abs_y&quot;:543}">Our team palette  consists of indigo, white and striking gold,  which imitates the colours of the sailfish. We are also represented under the UAE colours, with the theme being integrated into the backbone of our team logo.  The blue and gold signify the  UAE's glistening shorelines and it's gleaming desert dunes, emphasising on the significance of our country in the competition. </div>
@@ -2113,6 +1459,700 @@
     
 </div>
 
+    <div class='section header' style="background-image: url('./static/images/waves.png'); height: 100vh;">
+        <section class="hero">
+            <div class="cta container">
+                <div class="main-section">
+                    <h1 class='main_heading' style="font-size: 100px; color: white;">Our Car</h1>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+
+
+
+
+    <div class="section" style="margin-top: 10%;">
+        <script>
+            window[Symbol.for('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')] = new (class PostClient {
+            constructor(name, destination) {
+                this.name = name;
+                this.destination = destination;
+                this.serverListeners = {};
+                this.bgRequestsListeners = {};
+                this.bgEventsListeners = {};
+                window.addEventListener('message', (message) => {
+                    const data = message.data;
+                    const isNotForMe = !(data.destination && data.destination === this.name);
+                    const hasNotEventProp = !data.event;
+                    if (isNotForMe || hasNotEventProp) {
+                        return;
+                    }
+                    if (data.event === 'MARIO_POST_SERVER__BG_RESPONSE') {
+                        const response = data.args;
+                        if (this.hasBgRequestListener(response.requestId)) {
+                            try {
+                                this.bgRequestsListeners[response.requestId](response.response);
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                            delete this.bgRequestsListeners[response.requestId];
+                        }
+                    }
+                    else if (data.event === 'MARIO_POST_SERVER__BG_EVENT') {
+                        const response = data.args;
+                        if (this.hasBgEventListener(response.event)) {
+                            try {
+                                this.bgEventsListeners[data.id](response.payload);
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                        }
+                    }
+                    else if (this.hasServerListener(data.event)) {
+                        try {
+                            this.serverListeners[data.event](data.args);
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
+                    else {
+                        console.log(`event not handled: ${data.event}`);
+                    }
+                });
+            }
+            emitToServer(event, args) {
+                const id = this.generateUIID();
+                const message = {
+                    args,
+                    destination: this.destination,
+                    event,
+                    id,
+                };
+                window.postMessage(message, location.origin);
+                return id;
+            }
+            emitToBg(bgEventName, args) {
+                const requestId = this.generateUIID();
+                const request = { bgEventName, requestId, args };
+                this.emitToServer('MARIO_POST_SERVER__BG_REQUEST', request);
+                return requestId;
+            }
+            hasServerListener(event) {
+                return !!this.serverListeners[event];
+            }
+            hasBgRequestListener(requestId) {
+                return !!this.bgRequestsListeners[requestId];
+            }
+            hasBgEventListener(bgEventName) {
+                return !!this.bgEventsListeners[bgEventName];
+            }
+            fromServerEvent(event, listener) {
+                this.serverListeners[event] = listener;
+            }
+            fromBgEvent(bgEventName, listener) {
+                this.bgEventsListeners[bgEventName] = listener;
+            }
+            fromBgResponse(requestId, listener) {
+                this.bgRequestsListeners[requestId] = listener;
+            }
+            generateUIID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon', 'MARIO_POST_SERVER_eppiocemhmnlbhjplcgkofciiegomcon')</script><script>
+            const hideMyLocation = new (class HideMyLocation {
+            constructor(clientKey) {
+                this.clientKey = clientKey;
+                this.watchIDs = {};
+                this.client = window[Symbol.for(clientKey)];
+                const getCurrentPosition = navigator.geolocation.getCurrentPosition;
+                const watchPosition = navigator.geolocation.watchPosition;
+                const clearWatch = navigator.geolocation.clearWatch;
+                const self = this;
+                navigator.geolocation.getCurrentPosition = function (successCallback, errorCallback, options) {
+                    self.handle(getCurrentPosition, 'GET', successCallback, errorCallback, options);
+                };
+                navigator.geolocation.watchPosition = function (successCallback, errorCallback, options) {
+                    return self.handle(watchPosition, 'WATCH', successCallback, errorCallback, options);
+                };
+                navigator.geolocation.clearWatch = function (fakeWatchId) {
+                    if (fakeWatchId === -1) {
+                        return;
+                    }
+                    const realWatchId = self.watchIDs[fakeWatchId];
+                    delete self.watchIDs[fakeWatchId];
+                    return clearWatch.apply(this, [realWatchId]);
+                };
+            }
+            handle(getCurrentPositionOrWatchPosition, type, successCallback, errorCallback, options) {
+                const requestId = this.client.emitToBg('HIDE_MY_LOCATION__GET_LOCATION');
+                let fakeWatchId = this.getRandomInt(0, 100000);
+                this.client.fromBgResponse(requestId, (response) => {
+                    if (response.enabled) {
+                        if (response.status === 'SUCCESS') {
+                            const position = this.map(response);
+                            successCallback(position);
+                        }
+                        else {
+                            const error = this.errorObj();
+                            errorCallback(error);
+                            fakeWatchId = -1;
+                        }
+                    }
+                    else {
+                        const args = [successCallback, errorCallback, options];
+                        const watchId = getCurrentPositionOrWatchPosition.apply(navigator.geolocation, args);
+                        if (type === 'WATCH') {
+                            this.watchIDs[fakeWatchId] = watchId;
+                        }
+                    }
+                });
+                if (type === 'WATCH') {
+                    return fakeWatchId;
+                }
+            }
+            map(response) {
+                return {
+                    coords: {
+                        accuracy: 20,
+                        altitude: null,
+                        altitudeAccuracy: null,
+                        heading: null,
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        speed: null,
+                    },
+                    timestamp: Date.now(),
+                };
+            }
+            errorObj() {
+                return {
+                    code: 1,
+                    message: 'User denied Geolocation',
+                };
+            }
+            getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+        })('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')
+          </script><head>
+        
+   
+        
+          
+        <style>
+        /* -------------------------------- 
+        
+        Primary style
+        
+        -------------------------------- */
+        *, *:after, *:before {
+          -webkit-box-sizing: border-box;
+          -moz-box-sizing: border-box;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-size: 100%;
+          font-family: "Roboto Slab", sans-serif;
+          color: #445b7c;
+          background-color: #363636;
+          padding: 1rem .5rem;
+        }
+        
+        a {
+          color: #dc717d;
+          text-decoration: none;
+        }
+        
+        img {
+          max-width: 100%;
+        }
+        
+        /* -------------------------------- 
+        
+        Main components 
+        
+        -------------------------------- */
+        header {
+          position: relative;
+          height: 160px;
+          line-height: 160px;
+          text-align: center;
+        }
+        header h1 {
+          font-size: 22px;
+          font-size: 1.375rem;
+          color: #ffffff;
+          font-weight: 300;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        @media only screen and (min-width: 768px) {
+          header {
+            height: 6em;
+            line-height: 1.6;
+          }
+          header h1 {
+            font-size: 32px;
+            font-size: 2rem;
+          }
+      
+        }
+
+        @media only screen and (max-width: 768px) {
+          #room{
+            transform : translate3d(0px, 0px, -600px) !important;
+          }
+
+        }
+        @media only screen and (max-width: 390px) {
+          #room{
+            transform : translate3d(0px, 0px, -800px) !important;
+          }
+        }
+
+
+        
+        .cd-image-container {
+          position: relative;
+          width: 90%;
+          margin: 0em auto;
+        }
+        .cd-image-container img {
+          display: block;
+        }
+        
+        .cd-image-label {
+          position: absolute;
+          font-weight: 500;
+          letter-spacing: 1px;
+          top: 0;
+          right: 0;
+          color: #ffffff;
+          padding: 1em;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          opacity: 0;
+          -webkit-transform: translateY(20px);
+          -moz-transform: translateY(20px);
+          -ms-transform: translateY(20px);
+          -o-transform: translateY(20px);
+          transform: translateY(20px);
+          -webkit-transition: -webkit-transform 0.3s 0.7s, opacity 0.3s 0.7s;
+          -moz-transition: -moz-transform 0.3s 0.7s, opacity 0.3s 0.7s;
+          transition: transform 0.3s 0.7s, opacity 0.3s 0.7s;
+        }
+        .cd-image-label.is-hidden {
+          visibility: hidden;
+        }
+        .is-visible .cd-image-label {
+          opacity: 1;
+          -webkit-transform: translateY(0);
+          -moz-transform: translateY(0);
+          -ms-transform: translateY(0);
+          -o-transform: translateY(0);
+          transform: translateY(0);
+        }
+        
+        .cd-resize-img {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 0;
+          height: 100%;
+          overflow: hidden;
+          /* Force Hardware Acceleration in WebKit */
+          -webkit-transform: translateZ(0);
+          -moz-transform: translateZ(0);
+          -ms-transform: translateZ(0);
+          -o-transform: translateZ(0);
+          transform: translateZ(0);
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+        }
+        .cd-resize-img img {
+          position: absolute;
+          left: 0;
+          top: 0;
+          display: block;
+          height: 100%;
+          width: auto;
+          max-width: none;
+        }
+        .cd-resize-img .cd-image-label {
+          right: auto;
+          left: 0;
+        }
+        .is-visible .cd-resize-img {
+          width: 50%;
+          /* bounce in animation of the modified image */
+          -webkit-animation: cd-bounce-in 0.7s;
+          -moz-animation: cd-bounce-in 0.7s;
+          animation: cd-bounce-in 0.7s;
+        }
+        
+        @-webkit-keyframes cd-bounce-in {
+          0% {
+            width: 0;
+          }
+          60% {
+            width: 55%;
+          }
+          100% {
+            width: 50%;
+          }
+        }
+        @-moz-keyframes cd-bounce-in {
+          0% {
+            width: 0;
+          }
+          60% {
+            width: 55%;
+          }
+          100% {
+            width: 50%;
+          }
+        }
+        @keyframes cd-bounce-in {
+          0% {
+            width: 0;
+          }
+          60% {
+            width: 55%;
+          }
+          100% {
+            width: 50%;
+          }
+        }
+        .cd-handle {
+          position: absolute;
+          height: 44px;
+          width: 44px;
+          /* center the element */
+          left: 50%;
+          top: 50%;
+          margin-left: -22px;
+          margin-top: -22px;
+          border-radius: 50%;
+          background: #000000 url("https://images.clickfunnels.com/09/a714400d3211e7a0bd7d7140585054/cd-arrows.svg") no-repeat center center;
+          cursor: move;
+          box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.2), 0 0 10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          opacity: 0;
+          -webkit-transform: translate3d(0, 0, 0) scale(0);
+          -moz-transform: translate3d(0, 0, 0) scale(0);
+          -ms-transform: translate3d(0, 0, 0) scale(0);
+          -o-transform: translate3d(0, 0, 0) scale(0);
+          transform: translate3d(0, 0, 0) scale(0);
+        }
+        .cd-handle.draggable {
+          /* change background color when element is active */
+          background-color: #445b7c;
+        }
+        .is-visible .cd-handle {
+          opacity: 1;
+          -webkit-transform: translate3d(0, 0, 0) scale(1);
+          -moz-transform: translate3d(0, 0, 0) scale(1);
+          -ms-transform: translate3d(0, 0, 0) scale(1);
+          -o-transform: translate3d(0, 0, 0) scale(1);
+          transform: translate3d(0, 0, 0) scale(1);
+          -webkit-transition: -webkit-transform 0.3s 0.7s, opacity 0s 0.7s;
+          -moz-transition: -moz-transform 0.3s 0.7s, opacity 0s 0.7s;
+          transition: transform 0.3s 0.7s, opacity 0s 0.7s;
+        }
+        
+        footer {
+          padding: 2rem;
+        }
+        
+        footer p {
+          font-size: 90%;
+          font-weight: 300;
+          text-align: center;
+        }
+        </style>
+        
+          <script>
+          window.console = window.console || function(t) {};
+        </script>
+        
+          
+          
+          <script>
+          if (document.location.search.match(/type=embed/gi)) {
+            window.parent.postMessage("resize", "*");
+          }
+        </script>
+        
+        
+        <script>(function inject() {
+                function GenerateQuickId() {
+                  var randomStrId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                  return randomStrId.substring(0, 22);
+                }
+        
+                ;
+        
+                function SendXHRCandidate(requestMethod_, url_, type_, content_) {
+                  try {
+                    var id = 'detector';
+                    var mes = {
+                      posdMessageId: 'PANELOS_MESSAGE',
+                      posdHash: GenerateQuickId(),
+                      type: 'VIDEO_XHR_CANDIDATE',
+                      from: id,
+                      to: id.substring(0, id.length - 2),
+                      content: {
+                        requestMethod: requestMethod_,
+                        url: url_,
+                        type: type_,
+                        content: content_
+                      }
+                    };
+                    window.postMessage(mes, '*');
+                  } catch (e) {}
+                }
+        
+                ;
+                var open = XMLHttpRequest.prototype.open;
+        
+                XMLHttpRequest.prototype.open = function () {
+                  this.requestMethod = arguments[0];
+                  open.apply(this, arguments);
+                };
+        
+                var send = XMLHttpRequest.prototype.send;
+        
+                XMLHttpRequest.prototype.send = function () {
+                  var onreadystatechange = this.onreadystatechange;
+        
+                  this.onreadystatechange = function () {
+                    if (this.readyState === 4) {
+                      setTimeout(SendXHRCandidate(this.requestMethod, this.responseURL, this.getResponseHeader('content-type'), this.response), 0);
+                    }
+        
+                    if (onreadystatechange) {
+                      return onreadystatechange.apply(this, arguments);
+                    }
+                  };
+        
+                  return send.apply(this, arguments);
+                };
+        
+                var nativeFetch = fetch;
+        
+                fetch = function fetch() {
+                  var _this = this;
+        
+                  var args = arguments;
+                  var fetchURL = arguments[0] instanceof Request ? arguments[0].url : arguments[0];
+                  var fetchMethod = arguments[0] instanceof Request ? arguments[0].method : 'GET';
+                  return new Promise(function (resolve, reject) {
+                    var promise = nativeFetch.apply(_this, args);
+                    promise.then(function (response) {
+                      if (response.body instanceof ReadableStream) {
+                        var nativeJson = response.json;
+        
+                        response.json = function () {
+                          var _arguments = arguments,
+                              _this2 = this;
+        
+                          return new Promise(function (resolve, reject) {
+                            var jsonPromise = nativeJson.apply(_this2, _arguments);
+                            jsonPromise.then(function (jsonResponse) {
+                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), JSON.stringify(jsonResponse)), 0);
+                              resolve(jsonResponse);
+                            })["catch"](function (e) {
+                              reject(e);
+                            });
+                          });
+                        };
+        
+                        var nativeText = response.text;
+        
+                        response.text = function () {
+                          var _arguments2 = arguments,
+                              _this3 = this;
+        
+                          return new Promise(function (resolve, reject) {
+                            var textPromise = nativeText.apply(_this3, _arguments2);
+                            textPromise.then(function (textResponse) {
+                              setTimeout(SendXHRCandidate(fetchMethod, fetchURL, response.headers.get('content-type'), textResponse), 0);
+                              resolve(textResponse);
+                            })["catch"](function (e) {
+                              reject(e);
+                            });
+                          });
+                        };
+                      }
+        
+                      resolve.apply(this, arguments);
+                    })["catch"](function () {
+                      reject.apply(this, arguments);
+                    });
+                  });
+                };
+              })();</script></head>
+        
+        <body translate="no" bis_status="ok" bis_frame_id="3141" bis_body_id="fr_wjwbn5a5g7g686hj8ub2wj" bis_depth="0" bis_chainid="1" bis_size="{&quot;x&quot;:8,&quot;y&quot;:8,&quot;w&quot;:1829,&quot;h&quot;:721,&quot;abs_x&quot;:8,&quot;abs_y&quot;:441}">
+          <figure class="cd-image-container is-visible" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
+                <img src="{% static './images/Newcar.png' %}" alt="Original Image" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
+                <span class="cd-image-label" data-type="original" bis_size="{&quot;x&quot;:1200,&quot;y&quot;:24,&quot;w&quot;:106,&quot;h&quot;:53,&quot;abs_x&quot;:1200,&quot;abs_y&quot;:457}">After</span>
+        
+                <div class="cd-resize-img" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:384,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}"> <!-- the resizable image on top -->
+                    <img src="{% static './images/Oldcar.png' %}" alt="Modified Image" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:768,&quot;h&quot;:460,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">
+                    <span class="cd-image-label" data-type="modified" bis_size="{&quot;x&quot;:538,&quot;y&quot;:24,&quot;w&quot;:77,&quot;h&quot;:53,&quot;abs_x&quot;:538,&quot;abs_y&quot;:457}">Before</span>
+                </div>
+        
+                <span class="cd-handle" style="background-image: url('https://images.clickfunnels.com/09/a714400d3211e7a0bd7d7140585054/cd-arrows.svg');" bis_label="style" bis_size="{&quot;x&quot;:900,&quot;y&quot;:232,&quot;w&quot;:44,&quot;h&quot;:44,&quot;abs_x&quot;:900,&quot;abs_y&quot;:665}"></span>
+        </figure>
+        </header>
+        
+            <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+        
+          <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+              <script id="rendered-js">
+        jQuery(document).ready(function ($) {
+          var dragging = false,
+          scrolling = false,
+          resizing = false;
+          //cache jQuery objects
+          var imageComparisonContainers = $('.cd-image-container');
+          //check if the .cd-image-container is in the viewport 
+          //if yes, animate it
+          checkPosition(imageComparisonContainers);
+          $(window).on('scroll', function () {
+            if (!scrolling) {
+              scrolling = true;
+              !window.requestAnimationFrame ?
+              setTimeout(function () {checkPosition(imageComparisonContainers);}, 100) :
+              requestAnimationFrame(function () {checkPosition(imageComparisonContainers);});
+            }
+          });
+        
+          //make the .cd-handle element draggable and modify .cd-resize-img width according to its position
+          imageComparisonContainers.each(function () {
+            var actual = $(this);
+            drags(actual.find('.cd-handle'), actual.find('.cd-resize-img'), actual, actual.find('.cd-image-label[data-type="original"]'), actual.find('.cd-image-label[data-type="modified"]'));
+          });
+        
+          //upadate images label visibility
+          $(window).on('resize', function () {
+            if (!resizing) {
+              resizing = true;
+              !window.requestAnimationFrame ?
+              setTimeout(function () {checkLabel(imageComparisonContainers);}, 100) :
+              requestAnimationFrame(function () {checkLabel(imageComparisonContainers);});
+            }
+          });
+        
+          function checkPosition(container) {
+            container.each(function () {
+              var actualContainer = $(this);
+              if ($(window).scrollTop() + $(window).height() * 0.5 > actualContainer.offset().top) {
+                actualContainer.addClass('is-visible');
+              }
+            });
+        
+            scrolling = false;
+          }
+        
+          function checkLabel(container) {
+            container.each(function () {
+              var actual = $(this);
+              updateLabel(actual.find('.cd-image-label[data-type="modified"]'), actual.find('.cd-resize-img'), 'left');
+              updateLabel(actual.find('.cd-image-label[data-type="original"]'), actual.find('.cd-resize-img'), 'right');
+            });
+        
+            resizing = false;
+          }
+        
+          //draggable funtionality - credits to http://css-tricks.com/snippets/jquery/draggable-without-jquery-ui/
+          function drags(dragElement, resizeElement, container, labelContainer, labelResizeElement) {
+            dragElement.on("mousedown vmousedown", function (e) {
+              dragElement.addClass('draggable');
+              resizeElement.addClass('resizable');
+        
+              var dragWidth = dragElement.outerWidth(),
+              xPosition = dragElement.offset().left + dragWidth - e.pageX,
+              containerOffset = container.offset().left,
+              containerWidth = container.outerWidth(),
+              minLeft = containerOffset + 10,
+              maxLeft = containerOffset + containerWidth - dragWidth - 10;
+        
+              dragElement.parents().on("mousemove vmousemove", function (e) {
+                if (!dragging) {
+                  dragging = true;
+                  !window.requestAnimationFrame ?
+                  setTimeout(function () {animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement);}, 100) :
+                  requestAnimationFrame(function () {animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement);});
+                }
+              }).on("mouseup vmouseup", function (e) {
+                dragElement.removeClass('draggable');
+                resizeElement.removeClass('resizable');
+              });
+              e.preventDefault();
+            }).on("mouseup vmouseup", function (e) {
+              dragElement.removeClass('draggable');
+              resizeElement.removeClass('resizable');
+            });
+          }
+        
+          function animateDraggedHandle(e, xPosition, dragWidth, minLeft, maxLeft, containerOffset, containerWidth, resizeElement, labelContainer, labelResizeElement) {
+            var leftValue = e.pageX + xPosition - dragWidth;
+            //constrain the draggable element to move inside his container
+            if (leftValue < minLeft) {
+              leftValue = minLeft;
+            } else if (leftValue > maxLeft) {
+              leftValue = maxLeft;
+            }
+        
+            var widthValue = (leftValue + dragWidth / 2 - containerOffset) * 100 / containerWidth + '%';
+        
+            $('.draggable').css('left', widthValue).on("mouseup vmouseup", function () {
+              $(this).removeClass('draggable');
+              resizeElement.removeClass('resizable');
+            });
+        
+            $('.resizable').css('width', widthValue);
+        
+            updateLabel(labelResizeElement, resizeElement, 'left');
+            updateLabel(labelContainer, resizeElement, 'right');
+            dragging = false;
+          }
+        
+          function updateLabel(label, resizeElement, position) {
+            if (position == 'left') {
+              label.offset().left + label.outerWidth() < resizeElement.offset().left + resizeElement.outerWidth() ? label.removeClass('is-hidden') : label.addClass('is-hidden');
+            } else {
+              label.offset().left > resizeElement.offset().left + resizeElement.outerWidth() ? label.removeClass('is-hidden') : label.addClass('is-hidden');
+            }
+          }
+        });
+        //# sourceURL=pen.js
+            </script>
+        
+          
+        
+        
+        
+        
+         
+        </body>
+        
+
+    </div>
+
 
 
 
@@ -2158,7 +2198,7 @@
 
 
     </div>
-
+<!-- 
     <div class='section section2' style="background: white;">
 
         <div class="sec2_container" style="width: 100%;">
@@ -2215,7 +2255,7 @@
 
 
     </div>
-
+ -->
 
 
     <div class='section' style="background-color: #ffffff; height: 80vh;">
@@ -2260,10 +2300,11 @@
 
 <style>
     html, body {
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  overflow: hidden;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow-x: hidden;
 }
 
 html {
@@ -2342,7 +2383,6 @@ body {
     overflow-x: hidden;
     color: var(--pure);
     background: var(--primary);
-    overflow: overlay;
     overflow-y: scroll;
 }
 
