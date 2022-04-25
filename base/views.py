@@ -19,5 +19,18 @@ def aboutus(request):
     return render(request, 'base/aboutus.html')
 def contactus(request):
     return render(request, 'base/contactus.html')
+
 def car(request):
     return render(request, 'base/car.html')
+
+def traces(request):
+    return render(request, 'base/traces.html')
+
+
+def car_global(request):
+    return render(request, 'base/car_global.html')
+
+
+def plane(request):
+    return render(request, 'base/plane.html')
+

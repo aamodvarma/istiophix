@@ -217,25 +217,30 @@
     color: #fff;
   }
   [data-type="iceland"] .content__left {
-    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/iceland.jpg");
+    background-image: url("{% static 'images/viewer.jpg' %}");
+  }
+  [data-type="brand"] .content__left {
+    background-image: url("{% static 'images/brand.jpg' %}");
   }
   .spinner--right [data-type="iceland"] .content__left {
     background-image: none;
   }
   [data-type="china"] .content__left {
-    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/china.jpg");
+    background-image: url("{% static 'images/event.jpg' %}");
   }
   .spinner--right [data-type="china"] .content__left {
     background-image: none;
   }
   [data-type="usa"] .content__left {
-    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/usa.jpg");
+
+    background-image: url("{% static 'images/business.jpeg' %}");
   }
   .spinner--right [data-type="usa"] .content__left {
     background-image: none;
   }
   [data-type="peru"] .content__left {
-    background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/215059/peru.jpg");
+    background-image: url("{% static 'images/audience.jpg' %}");
+    float: left;
   }
   .spinner--right [data-type="peru"] .content__left {
     background-image: none;
@@ -273,7 +278,7 @@
 
                               </p>
                           </div>
-                          <h3 class="content__index">04</h3>
+                          <h3 class="content__index">01</h3>
                       </div>
                   </div>
               </div>
@@ -291,7 +296,7 @@
                             </p>
                             <p></p>
                           </div>
-                          <h3 class="content__index">03</h3>
+                          <h3 class="content__index">02</h3>
                       </div>
                   </div>
               </div><div class="spinner__face" data-bg="#19304a" data-index="1">
@@ -306,7 +311,7 @@
                             </p>
                             <p></p>
                           </div>
-                          <h3 class="content__index">02</h3>
+                          <h3 class="content__index">03</h3>
                       </div>
                   </div>
               </div>
@@ -322,12 +327,12 @@
                             </p>
                             <p></p>
                           </div>
-                          <h3 class="content__index">01</h3>
+                          <h3 class="content__index">04</h3>
                       </div>
                   </div>
               </div>
               <div class="spinner__face" data-bg="#27323c" data-index="0">
-                  <div class="content" data-type="iceland" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjUDe2/Q8AArMBlyBl2iwAAAAASUVORK5CYII=&quot;);">
+                  <div class="content" data-type="brand" style="background-image: url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjUDe2/Q8AArMBlyBl2iwAAAAASUVORK5CYII=&quot;);">
                       <div class="content__left">
                           <h1>BRAND AWARENESS</h1>
                       </div>
@@ -344,7 +349,7 @@ Gain recognition for supporting young innovators and inspiring the youth of the 
                             </p>
                             <p></p>
                           </div>
-                          <h3 class="content__index">00</h3>
+                          <h3 class="content__index">05</h3>
                       </div>
                   </div>
               </div>
@@ -642,8 +647,10 @@ Gain recognition for supporting young innovators and inspiring the youth of the 
     let svg = d3.select('.chart-wrapper').append('svg').
     attr({
       'width': width,
-      'height': height,
-      'class': 'pieChart' }).
+      'height': height/1.3,
+      'class': 'pieChart',
+      'transform': 'scale(1.75)'
+    }).
     
     append('g');
     

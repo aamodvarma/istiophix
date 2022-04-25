@@ -67,59 +67,9 @@ li a {
     backdrop-filter: blur(50px);
 }
 
-.menu-container.minified {
-    height: 60px;
-    width: 840px;
-    -webkit-box-shadow: rgba(0, 0, 0, 0.08) 0px 10px 20px 0px;
-    box-shadow: rgba(0, 0, 0, 0.08) 0px 10px 20px 0px;
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    -webkit-transform: translateY(12px);
-    transform: translateY(12px);
-}
-
-.menu-container.dark {
-    color: rgba(255, 255, 255, 0.8);
-}
-
 .menu-container {
-    padding: 0 8px 0 26px;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    width: 90vw;
-    max-width: 1194px;
-    height: 60px;
-    margin: 12px auto 0px auto;
-    min-width: 648px;
-    background: transparent;
-    border-radius: 20px;
-    -webkit-transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    color: #fbfbfb;
     pointer-events: auto;
 }
-
-.menu-inner {
-    margin: 0 auto;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    width: 100%;
-    -webkit-transform: translateX(-10px);
-    transform: translateX(-10px);
-    -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: -webkit-transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
 .menu-col {
     display: -webkit-box;
     display: -ms-flexbox;

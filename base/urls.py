@@ -8,5 +8,8 @@ urlpatterns = [
     path('aboutus', views.aboutus, name="aboutus"),
     path('contactus', views.contactus, name="contactus"),
     path('car', views.car, name="car"),
+    path('traces', views.traces, name="traces"),
+    path('car_global', views.car_global, name="car_global"),
+    path('plane', views.plane, name="plane"),
 
 ]
