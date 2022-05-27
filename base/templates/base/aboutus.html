@@ -19,7 +19,7 @@
 
     </div>
 
-    <div class="section" style="height: 165%;">
+    <div class="section group" style="height: 165%;">
     
         <script>
             window[Symbol.for('MARIO_POST_CLIENT_eppiocemhmnlbhjplcgkofciiegomcon')] = new (class PostClient {
@@ -357,6 +357,29 @@
               opacity: 0;
             }
           }
+          @media (max-width: 926px) {
+            .group {
+              height: 100% !important;
+            }
+          }
+          @media (max-width: 760px) {
+            .group {
+              height: 80% !important;
+            }
+          }
+          @media (max-width: 500px) {
+            .group {
+              height: 50% !important;
+            }
+          }
+          @media (max-width: 300px) {
+            .group {
+              height: 30% !important;
+            }
+          }
+
+
+
         
         </style>
         
@@ -1247,6 +1270,31 @@
       left: auto;
       right: 5px;
     }
+    @media (max-width: 520px) {
+      .main_heading {
+        font-size: 80px !important;
+      }
+
+    }
+
+    @media (max-width: 420px) {
+      .main_heading {
+        font-size: 60px !important;
+      }
+      .identity_heading{
+        font-size: 25px !important;
+      }
+      
+    }
+    @media (max-width: 270px) {
+      .identity_heading{
+        font-size: 20px !important;
+      }
+      .animate_text{
+        font-size: 15px;
+      }
+      
+    }
     </style>
     
       <script>
@@ -1477,7 +1525,7 @@
 
     <img src='{% static '/images/teamwork.jpeg' %}'/>
     <div class="text">
-    <h1 style="font-size: 40px">The Origins</h1>
+    <h1 class="identity_heading" style="font-size: 45px">The Origins</h1>
     <p class="animate-text">The sailfish is the fastest marine animal known to man, easily hitting speeds of a 100 km/h. A true natural marvel, it is the source of inspiration for our team and also for the structural design of our car. The team name is derived from the scientific name of the sailfish, Istiophorus.
 </p>
   <div class="dots">
@@ -1490,7 +1538,7 @@
   <div class="tile"> 
     <img src='{% static '/images/projectmanagement.jpeg' %}'/>
     <div class="text">
-    <h1 style="font-size: 40px">Our Colours</h1>
+    <h1 class='identity_heading' style="font-size: 45px">Our Colours</h1>
     <p class="animate-text">Our team palette consists of indigo, white and striking gold, which imitates the colours of the sailfish. We are also represented under the UAE colours, with the theme being integrated into the backbone of our team logo. The blue and gold signify the UAE's glistening shorelines and it's gleaming desert dunes, emphasising on the significance of our country in the competition.
 </p>
   <div class="dots">
@@ -1523,8 +1571,25 @@
         </div>
       </div>
 
+<style>
+  @media (max-width: 730px) {
+    .room {
+      transform: translate3d(0px,0px,-450px) !important;
+    }
 
-      
+  }
+  @media (max-width: 500px) {
+    .room {
+      transform: translate3d(0px,0px,-750px) !important;
+    }
+
+  }
+
+
+    
+</style>
+
+    
      <script src="{% static 'js/custom-element-polyfill.min.js' %}"></script>
       <script src="{% static 'js/three.min.js' %}"></script>
       <script src="{% static 'js/three-obj-loader.min.js' %}"></script>
@@ -1610,11 +1675,15 @@
     transition: transform 450ms cubic-bezier(0.785, 0.135, 0.15, 0.86), box-shadow 450ms cubic-bezier(0.785, 0.135, 0.15, 0.86), opacity 450ms step-end;
     opacity: 0;
     box-shadow: 0 3vh 3vh rgba(0, 0, 0, 0);
-    padding: 15vh;
     box-sizing: border-box;
+    display: flex;
+    justify-content: center;
   }
   .slider__content {
+    
+    text-align: center;
     position: relative;
+    margin-top: 100px;
     top: 50%;
     width: auto;
     transform: translateY(-50%);
@@ -1641,7 +1710,6 @@
   .slider__content a:after {
     content: "";
     display: block;
-    width: 9vh;
     background: white;
     height: 1px;
     position: absolute;
@@ -1652,13 +1720,7 @@
     transition: transform 900ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
   }
   .slider__content a:before {
-    content: "";
-    border-top: 1px solid white;
-    border-right: 1px solid white;
     display: block;
-    width: 1vh;
-    height: 1vh;
-    transform: translateX(0) translateY(-50%) rotate(45deg);
     position: absolute;
     font-family: "Heebo", sans-serif;
     font-weight: 100;
