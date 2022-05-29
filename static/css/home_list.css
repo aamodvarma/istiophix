@@ -29,7 +29,6 @@ body
 .tile img
 {
   height:100%;
-  opacity: 0.5;
   position:absolute;
   top:0;
   left:0;
@@ -137,10 +136,14 @@ box-shadow: 0px 35px 77px -17px rgba(0,0,0,0.64);
 }
 
 
-@media (max-width: 1000px) {
+@media (max-width: 1030px) {
   .wrap {
    flex-direction: column;
     width:480px;
+  }
+  
+  .tile_bot{
+    display: contents !important;
   }
 
 }

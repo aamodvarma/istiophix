@@ -1,10 +1,72 @@
 {% extends 'base/main.html'%} {% load static %} {% block content%}
 
-
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
-<div class='section header' id='div1' style="background:url('./static/images/2832944.jpg');background-size: cover; height: 100%;background-position: center;">
-</div>
+<div class='section header' id='div1' style="background:url('./static/images/Water.png');background-size: cover; height: 100%;background-position: center;">
 
+<style>
+body,h1 {font-family: "formulaone", sans-serif}
+body, html {height: 100%}
+.bgimg {
+  background-image: url('/w3images/forestbridge.jpg');
+  min-height: 100%;
+  background-position: center;
+  background-size: cover;
+}
+</style>
+<div class="bgimg w3-display-container w3-animate-opacity w3-text-white">
+  <div class="w3-display-middle">
+    <h1 class="w3-animate-top main_head" style="text-align: center; font-size: 90px; font-family: formulaone;">TEAM ISTIOPHIX</h1>
+    <hr class="w3-border-grey" style="margin:auto;width:40%; margin-bottom: 40px;">
+    <p class="w3-large w3-center" style="font-size: x-large !important;">Set Sail To New Horizons</p>
+  </div>
+</div>
+</div>
+<div>
+
+<!-- Page content -->
+
+
+<div>
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Raleway", sans-serif}
+
+body, html {
+  height: 100%;
+  line-height: 1.8;
+}
+
+/* Full height image header */
+.bgimg-1 {
+  background-position: center;
+  background-size: cover;
+  background-image: url("/static/images/back2.png");
+  min-height: 100%;
+}
+
+.w3-bar .w3-button {
+  padding: 16px;
+}
+</style>
+
+<!-- Header with full-height image -->
+<header class="bgimg-1 w3-display-container w3-grayscale-min" id="home">
+  <div class="w3-display-left w3-text-white" style="padding:48px">
+    <span class="w3-jumbo w3-hide-small" style="font-family: formulaone;">Who Are We?</span><br>
+    <span class="w3-xxxlarge w3-hide-large w3-hide-medium" style="font-family: formulaone;">Who Are We?</span><br>
+    <span class="w3-xxlarge" style="font-family: rogan-regular;">We are the F1 In Schools UAE National Champions of 2021</span>
+  </div> 
+  <div class="w3-display-bottomleft w3-text-grey w3-large" style="padding:24px 48px">
+    <i class="fa fa-facebook-official w3-hover-opacity"></i>
+    <i class="fa fa-instagram w3-hover-opacity"></i>
+    <i class="fa fa-snapchat w3-hover-opacity"></i>
+    <i class="fa fa-pinterest-p w3-hover-opacity"></i>
+    <i class="fa fa-twitter w3-hover-opacity"></i>
+    <i class="fa fa-linkedin w3-hover-opacity"></i>
+  </div>
+</header>
+
+</div>
 
 <link rel="stylesheet" href="{% static 'css/home_introduction.css' %}">
 <div>
@@ -13,7 +75,7 @@
   <fieldset class="hero2-text">
       <legend class="border-text">&nbsp; f1 in schools</legend>
   <h1>About The Competition</h1>
-  <p>F1 in Schools is an international STEM competition for school children, in which groups of 3–6 students have to design and manufacture a miniature car out of the official F1 Model Block using CAD/CAM design tools</p>
+  <p style="font-size: xx-large; margin-top: 45px; ">F1 in Schools is an international STEM competition for school children, in which groups of 3–6 students have to design and manufacture a miniature car out of the official F1 Model Block using CAD/CAM design tools</p>
   </fieldset></div>
 
 
@@ -21,7 +83,7 @@
 
 
 <link rel="stylesheet" href="{% static 'css/home_list.css' %}">
-<div class="section" style="height: 100vh;">
+<div class="section" style="">
 
 
 <div class="wrap">
@@ -29,8 +91,9 @@
 
     <img src='{% static '/images/teamwork.jpeg' %}'/>
     <div class="text">
-    <h1>TEAM COLABORATION</h1>
-    <p class="animate-text">MANAGING THE WORKFORCE FOR THE PROJECT, THE TEAM MEMBERS, EMPHASISING TEAMWORK, ALLOWING ROOM FOR INNOVATING THINKING AND A HAND-IN-HAND EQUAL PARTICIPATION TO ACHIEVE THE DESIRED GOALS
+    <h1>TEAM COLLABORATION</h1>
+    <p class="animate-text">
+      Managing the workforce for the project, the team members, emphasising teamwork, allowing room for innovative thinking and a hand-in-hand equal participation to achieve the desired goals                                   
 </p>
   <div class="dots">
       <span></span>
@@ -43,7 +106,8 @@
     <img src='{% static '/images/projectmanagement.jpeg' %}'/>
     <div class="text">
     <h1>PROJECT MANAGEMENT</h1>
-    <p class="animate-text">LEADING AND COORDINATING THE WORK OF THE TEAM TO ENSURE ALL PROJECT GOALS ARE MET WITHIN THE SET TIMEFRAME.
+    <p class="animate-text">
+      Leading and coordinating the work of the team to ensure all project goals are met within the set timeframe.
 </p>
   <div class="dots">
       <span></span>
@@ -59,7 +123,8 @@
     <img src='{% static '/images/marketing.jpeg' %}'/>
     <div class="text">
     <h1>MARKETING AND ENTERPRISE</h1>
-    <p class="animate-text">HELPING US STAND OUT BY PROMOTING OUR TEAM IDENTITY AND PROVIDING THE TEAM THE NECESSARY FUNDS ACCOMPLISH THE PROJECT GOALS.
+    <p class="animate-text">
+      Helping us stand out by promoting out team idenity and providing the team the necessary funds to accomplish the project goals.
 </p>
   <div class="dots">
       <span></span>
@@ -74,7 +139,8 @@
     <img src='{% static '/images/design.jpg' %}'/>
     <div class="text">
     <h1>DESIGN AND ANALYSIS</h1>
-    <p class="animate-text">INNOVATING VARIOUS CAR DESIGN CONCEPTS AND REPEATED TESTING AND ANALYSIS FOR THE BEST AERODYNAMICALLY EFFICIENT CAR TO COMPETE IN THE CHAMPIONSHIP.
+    <p class="animate-text">
+      Innovating various car design concpets and repeated testing and analysis for the best aerodynamically efficient car to compete in the championship.
 
 </p>
   <div class="dots">
@@ -84,13 +150,14 @@
     </div>
     </div>
   </div>
-    
-    <div class="tile"> 
 
+  <div class='tile_bot' style="display: flex; justify-content: center">
+    <div class="tile"> 
     <img src='{% static '/images/manufacturing.jpeg' %}'/>
     <div class="text">
     <h1>MANUFACTURING</h1>
-    <p class="animate-text">MILLING THE CAR BODY PARTS USING COMPUTER AIDED MANUFACTURING AND ASSEMBLING THE CAR
+    <p class="animate-text">
+      Milling the car body parts using computer aided manufacturing and assembling the car
  </p>
   <div class="dots">
       <span></span>
@@ -102,6 +169,7 @@
 </div>
   
   
+  </div>
 </div>
   
 </div>

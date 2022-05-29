@@ -196,8 +196,8 @@ h1 {
   .banner{
   display: flex;
   }
-  nav{
-      display: none;
+  .menu{
+      display: none !important;
   }
 
 

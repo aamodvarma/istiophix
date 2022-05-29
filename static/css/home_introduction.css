@@ -86,6 +86,9 @@ body a, html a {
   text-align: left;
   overflow: hidden;
 }
+h1{
+  padding: 0 !important;
+}
 
 .hero2-text {
   height: 400px;
@@ -103,7 +106,6 @@ body a, html a {
 .hero2-text p {
   font-weight: bold;
   font-family: Arial, Helvetica, sans-serif;
-  margin: 45px;
 }
 .hero2-text h1 {
   font-family: formulaone;
