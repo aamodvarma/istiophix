@@ -28,6 +28,16 @@ p{
 .w3-display-left{
   left:5% !important;
 }
+h1{
+  font-family: formulaone !important;
+}
+h3{
+  padding: 50px !important; 
+  font-family: rogan-regular !important;
+}
+p{
+  font-family: rogan-regular !important; 
+}
 @media (max-width: 600px) {
   .main_head{
     font-size: 60px !important;
@@ -39,3 +49,14 @@ p{
   }
 }
 
+
+.el__text{
+  font-family: rogan-regular !important;
+}
+.bgimg-2{
+  background-image: linear-gradient(to bottom left, rgba(0, 0, 0, 0), black), url("/static/images/car_race_img.png");
+  opacity: 1;
+  min-height: 100%;
+  background-size: cover;
+  background-position: center;
+}
