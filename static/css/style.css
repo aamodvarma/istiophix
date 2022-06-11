@@ -57,6 +57,13 @@ p{
     padding: 0px !important;
   }
 }
+@media (max-width: 900px) {
+  .logot{
+    flex-direction: column;
+    align-items: center;
+  }
+
+}
 
 
 .el__text{
